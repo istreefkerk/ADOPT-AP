@@ -1,0 +1,48 @@
+general:
+  size: small
+  start_time: 2005-01-01T00:00:00
+  end_time: 2015-12-31T00:00:00
+  ABM: True # running abm
+  BAU: False # Business as usual
+  model: Sub-Ewaso
+  sensitivity: False # sensitivity analysis
+  report_folder: 'report'
+
+logging:
+  logfile: down2earth.log  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  loglevel: DEBUG
+
+draw:
+  draw_every_nth_agent: 1
+  draw_geography:
+  draw_agents:
+    farmers:
+      color: "#FF0000"
+      variable: elevation
+      minimum: 33000
+      maximum: 33400
+
+adaptation:
+  alpha: 0.5
+  abstraction_p: 0.2
+  irrigation_demand_factor: 1
+  neighbourhood_radius: 10000
+  adapt_costs: 50
+
+report:
+
+  livestock_produce:
+    function: mean
+    type: farmers
+    varname: livestock_produce
+    per_timestep: false
+    format: csv
+    save: save
+
+  livestock_produce_individual:
+    function: null
+    type: farmers
+    varname: livestock_produce
+    per_timestep: True
+    format: npy
+    save: export
