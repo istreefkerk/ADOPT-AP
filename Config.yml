@@ -2,7 +2,7 @@ general:
   size: small
   start_time: 2005-01-01T00:00:00
   end_time: 2015-12-31T00:00:00
-  ABM: True # running abm
+  ABM: False # running abm
   BAU: False # Business as usual
   model: Sub-Ewaso
   sensitivity: False # sensitivity analysis
