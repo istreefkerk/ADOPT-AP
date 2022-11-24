@@ -6,9 +6,6 @@ import pandas as pd
 import random
 from netCDF4 import Dataset, num2date, date2num
 from datetime import datetime
-#from honeybees.library.raster import coords_to_pixels, write_to_array
-#from DRYP.components.DRYP_io import inputfile
-#from polygene.library.raster import coords_to_pixels, write_to_array
 # Global parameters
 ABC_RIVER = 0.9 # River abstraction parameter
 
