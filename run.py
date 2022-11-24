@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     study_area = get_study_area()
 
-    CONFIG_PATH = 'down2earth_true.yml' #'down2earth_false.yml' 
+    CONFIG_PATH = 'Config.yml'
 
     MODEL_NAME = 'DOWN2EARTH'
     
