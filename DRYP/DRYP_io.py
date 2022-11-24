@@ -65,7 +65,7 @@ class inputfile(object):
 		# Vegetation parameters ==========================================
 		self.fname_TSKc = f.drylandmodel[21]
 		# Output files mapas ===================================== Print = 
-		self.DirOutput = config['general']['export_folder']#f.drylandmodel[81]		# Output directory
+		self.DirOutput = config['general']['report_folder']#f.drylandmodel[81]		# Output directory
 		#reading output points
 		self.fname_DISpoints = f.drylandmodel[75]	# Discharge points
 		self.fname_SMDpoints = f.drylandmodel[77]	# Soil moisture points
