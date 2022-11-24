@@ -361,18 +361,6 @@ class ABMconnector(object):
         assert (livestock_produce >= 0).all()
         assert (livestock_produce != np.nan).all()
         return livestock_produce
-        
-
-        #OLD:
-        # sum_livestock = self.nr_livestock.sum(axis=1)
-        # # can also scale based on feed_reguirement... cows need more food. average_feed_required = self.feed_required.mean(axis=1)
-
-        # grass_consumed = np.minimum(nr_livestock * feed_required* (1- feed_residue), grass_yield *1000*(nr_livestock /sum_livestock))
-        # grass_availability = grass_yield *1000 *(nr_livestock /sum_livestock) - grass_consumed # *1000 to convert to kg from grid to every farmer
-        
-        # carrying_capacity = grass_availability / (feed_required * (1 - feed_residue))
-        # rate_of_growth = net_birth_rate + np.maximum((weight_gain_rate * (grass_consumed / ((1 - feed_residue) * nr_livestock))), 0) 
-        # livestock_produce= np.maximum(nr_livestock + (rate_of_growth * (1- (nr_livestock/carrying_capacity))* nr_livestock), 0) 
 
 #------------------------------------------------
 #                   WATER DEMAND 
