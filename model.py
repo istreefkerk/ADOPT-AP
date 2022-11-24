@@ -21,12 +21,11 @@ class D2EModel(ABM_Model,DRYP_Model): #,DRYP_Model
     
     # initialize ABM module
     def __init_ABM__(self, config_path, study_area, report_folder): #export_folder
-        #ABM_Model.__init__(self, config_path) # current_time, timestep_length,  , args = None, n_timesteps = n_timesteps
-        current_time = date(2005, 1, 1)# self.config['general']['start_time'] # date(2005, 1, 1) 
+        current_time = date(2005, 1, 1)
         self.timestep_length = timedelta(days=1)
 
         ABM_Model.__init__(self, current_time, self.timestep_length, config_path)
-        self.end_time = date(2015, 12, 31)# self.config['general']['end_time'] #date(2015, 12, 31) 
+        self.end_time = date(2015, 12, 31) 
         self.n_timesteps = (self.end_time - current_time) / self.timestep_length
 
         self.current_time = self.config['general']['start_time']
