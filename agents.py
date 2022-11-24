@@ -915,7 +915,7 @@ class Farmers(AgentBaseClass):
     def load_timestep_data(self):
         '''Update data of timestep'''
         
-        self.spei =  np.random.uniform(-3, 3, size= self.n)# This is for test version # USE: self.model.data.spei.sample_coords(self.lonlat, self.model.current_time) 
+        self.spei =  self.model.data.spei.sample_coords(self.lonlat, self.model.current_time) 
         self.latest_spei[:, 1:] = self.latest_spei[:, 0:-1]
         self.latest_spei[:, 0] = self.spei
 
