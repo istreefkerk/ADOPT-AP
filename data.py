@@ -37,13 +37,12 @@ class Data():
             fp='DataDrive/Sub-Ewaso/Sub_mask.tif', #Sub-Ewaso/1k_land_cover.tif DataDrive/, test/test_land_cover.tif
             bounds=self.model.bounds
         )
-
-        self.spei = NetCDFReader(
-            fp=os.path.join('DataDrive/Sub-Ewaso/Final_SPEI_catchment_squared_2.nc'),  # 'DataDrive/Sub-Ewaso/Final_SPEI_catchment_squared.nc'
-            varname='spei', bounds = self.model.bounds, latname = 'lat', lonname ='lon', timename ='time'
-        )
+        # Not used in test version
+        #self.spei = NetCDFReader(
+        #    fp=os.path.join('DataDrive/Sub-Ewaso/Final_SPEI_catchment_squared_2.nc'),  # 'DataDrive/Sub-Ewaso/Final_SPEI_catchment_squared.nc'
+        #    varname='spei', bounds = self.model.bounds, latname = 'lat', lonname ='lon', timename ='time'
+        #)
 
     def step(self):
-        self.spei.step()
-
-        #pass
+        pass
+        #self.spei.step()
