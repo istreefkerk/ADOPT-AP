@@ -92,11 +92,6 @@ class ABMconnector(object):
             self.asz = np.zeros(env_state.grid_size)
             
         else:
-            
-            #to pass variables to other components
-            #self.aof = aof # abstracted from overland flow
-            #self.auz = auz # irrigation from ABM
-            #self.asz = asz # abstracted from saturated zone
 
             self.data_provided =  1
 
@@ -106,7 +101,7 @@ class ABMconnector(object):
             
             self.kc = self.get_crop_factor(agents.current_day_of_year, crop_map, env_state.grid_size, self.initial_kc, agents.planting_date, agents.harvest_date) # initial kc can be taken from 
             
-            self.aof = water_demand[3] + water_demand[4] + water_demand[5] #+ agents.large_scale_agriculture() 
+            self.aof = (water_demand[3] + water_demand[4] + water_demand[5]) * self.grid_size /1000 # to m3 #+ agents.large_scale_agriculture() 
             self.auz = water_demand[1] + water_demand[4]
             self.asz = water_demand[0] + water_demand[1] + water_demand[2]
 
