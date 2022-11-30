@@ -368,7 +368,7 @@ class ABMconnector(object):
     def Extract_y(self, lst):
         return [item[1] for item in lst]
 
-    def distance_water(self, abstraction_points_DRYP, env_state, agents): # CHANGE, ADD AGENTS, CAN ALSO GET FROM DRYP
+    def distance_water(self, abstraction_points_DRYP, ro, agents):
         ''' 
         Calculation distance to water source (river and groundwater abstraction point).
         Return the distance (number of cells?) and the coordinates of nearest water sources that has water. 
@@ -391,7 +391,7 @@ class ABMconnector(object):
         abstraction_points = np.where(abstraction_points == True, 1, 1000)
         #abstraction_points = np.where(groundwater_depth < 100, 1, 1000)
         river_network = agents.river_network.flatten()
-        discharge = env_state.SZgrid.at_node['discharge']
+        discharge = ro.dis_dt
 
         river_ = np.where(river_network >= 1, 1, 1000)
         river_network = np.where(discharge >0, river_, 1000)
@@ -470,13 +470,13 @@ class ABMconnector(object):
     def industry(self):
         pass
 
-    def abstract_water(self, theta, theta_fc, Duz, abstraction_points_DRYP, env_state, agents):
+    def abstract_water(self, theta, theta_fc, Duz, abstraction_points_DRYP, env_state, agents, ro):
         ''' 
         Calculation water abstracted from nearest source per type of usage (household, irrigation, livestock).
         Return abstraction on grid for river and groundwater use per type of usage.
         ''' 
 
-        distance_water = self.distance_water(abstraction_points_DRYP, env_state, agents)
+        distance_water = self.distance_water(abstraction_points_DRYP, env_state, ro, agents)
         dtheta = (theta_fc-theta)
         dtheta[dtheta < 0] = 0
         SMD = Duz*dtheta # soil moisture demand
