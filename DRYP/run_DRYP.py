@@ -96,7 +96,7 @@ class DRYP_Model(object):
                 self.abc.run_ABM_one_step(self.agents.farmers, self.env_state,
                     self.rf.rain, self.env_state.Duz, self.swb.tht_dt, self.env_state.fc,
                     self.env_state.grid.at_node['wilting_point'],
-                    self.env_state.SZgrid.at_node['water_table__elevation'],self.swb.aet_dt, self.rf.PET, self.config)
+                    self.env_state.SZgrid.at_node['water_table__elevation'],self.swb.aet_dt, self.rf.PET, self.config, self.ro)
 
                 self.rf.rain += self.abc.auz
                 
