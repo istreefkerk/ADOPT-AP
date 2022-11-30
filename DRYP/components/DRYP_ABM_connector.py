@@ -61,7 +61,7 @@ class ABMconnector(object):
             print('Not available water extractions file')
         self.netcdf_file = int(inputfile.netcf_ABC)
 
-    def run_ABM_one_step(self, agents, env_state, rain, Duz, theta, theta_fc, theta_wp, wte, aet, pet, config):
+    def run_ABM_one_step(self, agents, env_state, rain, Duz, theta, theta_fc, theta_wp, wte, aet, pet, config, ro):
         """
         Call this to execute a step in the model.
                 
@@ -95,7 +95,7 @@ class ABMconnector(object):
 
             self.data_provided =  1
 
-            water_demand = self.abstract_water(theta, theta_fc, Duz, agents.abstraction_p, env_state, agents)
+            water_demand = self.abstract_water(theta, theta_fc, Duz, agents.abstraction_p, env_state, agents, ro)
 
             crop_map = agents.crop_map 
             
