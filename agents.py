@@ -920,7 +920,7 @@ class Farmers(AgentBaseClass):
         self.latest_spei[:, 0] = self.spei
 
         self.soil_moisture = self.model.swb.tht_dt
-        self.discharge = self.model.env_state.SZgrid.at_node['discharge']
+        self.discharge = self.model.ro.dis_dt
         self.groundwater = self.model.gw.wte_dt
 
     def step(self):
