@@ -65,6 +65,8 @@ class Farmers(AgentBaseClass):
         self.coordinates[:, 1] = self.location_index(self.lonlat)[1][:] 
 
         self.livestock_coords = self.coordinates.copy()
+        
+        self.distance_to_neighbours = self.Distance()
 
         assert self.lonlat[:,0].min() >= self.model.xmin
         assert self.lonlat[:,0].max() <= self.model.xmax
@@ -168,7 +170,7 @@ class Farmers(AgentBaseClass):
         self.distribution_abstraction_points = 0.1
         self.abstraction_p = np.random.choice([True, False], size=(self.grid), p = [self.distribution_abstraction_points, 1 - self.distribution_abstraction_points])
 
-        #Neigbourhood Radius
+        #Neigbourhood
         if self.model.config['general']['sensitivity'] == False:
             self.radius_neighbourhood =  np.random.uniform(1000, 10000)
         if self.model.config['general']['sensitivity'] == True:
@@ -176,6 +178,7 @@ class Farmers(AgentBaseClass):
 
         self.radius = np.full(self.n, self.radius_neighbourhood/1000)
         self.radius = self.radius.astype(int)
+        self.coords_neighbours = self.coords_neighbourhood(self.lonlat, self.radius)
 
         #Seasons
         self.planting_date = 274 # 1st of October
@@ -293,7 +296,7 @@ class Farmers(AgentBaseClass):
             radius = int(self.radius[i])
             for dy in range(-radius, radius + 1):
                 for dx in range(-radius, radius + 1):
-                    coord = ( y + dy, x + dx)
+                    coord = ( x + dx, y + dy)
 
                     if self.out_of_bounds(coord):
                     #Skip if not a torus and new coords out of bounds.
@@ -331,7 +334,7 @@ class Farmers(AgentBaseClass):
         Determines whether position is off the grid, returns the out of
         bounds coordinate.
         '''
-        y, x = pos
+        x, y = pos
         return x < 0 or x >= self.width or y < 0 or y >= self.height
 
     def torus_adj(self, pos):
@@ -341,7 +344,7 @@ class Farmers(AgentBaseClass):
         elif not self.torus:
             raise Exception("Point out of bounds, and space non-toroidal.")
         else:
-            return  pos[1] % self.height, pos[0] % self.width
+            return pos[0] % self.width, pos[1] % self.height
 
 #----------------------------------------------------
 #  DECISION TO ADAPT (PROTECTION MOTIVATION THEORY)
@@ -517,16 +520,14 @@ class Farmers(AgentBaseClass):
     def Pot_Harvest_Migration(self):
         """Calculate grass yield at other location (within vision). Calculate what the livestock production would be if you would move there (different grass yield)"""
 
-        self.coordinates_max_grass = self.max_neighbourhood(self.coords_neighbourhood(self.lonlat, self.radius),
-        self.values_neighbourhood(self.coords_neighbourhood(self.lonlat, self.radius),
-        (self.model.abc.grass_yield()))) #gives rows, columns back # CHANGE
+        self.coordinates_max_grass = self.max_neighbourhood(self.coords_neighbours, self.values_neighbourhood(self.coords_neighbours, self.model.abc.grass_yield()))
 
         max_grass_yield = np.zeros(self.n)
 
         grass_yield_grid = self.model.abc.grass_yield().reshape(self.height,self.width)
 
         for i in range(self.n):
-            max_grass_yield[i] = grass_yield_grid[self.coordinates_max_grass[i][0],self.coordinates_max_grass[i][1]] #
+            max_grass_yield[i] = grass_yield_grid[self.coordinates_max_grass[i][1],self.coordinates_max_grass[i][0]] 
 
         pot_harvest = self.model.abc.Livestock_production(max_grass_yield, self.nr_livestock.sum(axis=1), self.nr_livestock[:,0], self.feed_required_cattle, self.feed_residue_cattle, self.net_birth_rate_cattle, self.weight_gain_rate_cattle) + self.model.abc.Livestock_production(max_grass_yield,self.nr_livestock.sum(axis=1), self.nr_livestock[:,1], self.feed_required_goats, self.feed_residue_goats, self.net_birth_rate_goats, self.weight_gain_rate_goats)
         return pot_harvest
@@ -852,7 +853,7 @@ class Farmers(AgentBaseClass):
 
     def Neighbours_adopted(self, measure):
         '''Calculate the share of people in your neighbourhood that have adapted a measure'''
-        neighbours = self.Distance() < self.radius_neighbourhood # neighbours are people withing range
+        neighbours = self.distance_to_neighbours < self.radius_neighbourhood # neighbours are people withing range
         adopted = np.zeros((self.n, self.n-1))
 
         for i in range(self.n):
@@ -875,7 +876,7 @@ class Farmers(AgentBaseClass):
         '''Calculate a the average of the values of agents' attribute (e.g. crop production) within neighbourhood. 
         Make it relative to the characteristics of the other agents (e.g. per hectare, or number of livestock)'''
         
-        neighbours = self.Distance() < self.radius_neighbourhood # neighbours are people withing range
+        neighbours = self.distance_to_neighbours < self.radius_neighbourhood # neighbours are people withing range
         average = np.zeros(self.n)
 
         for i in range(self.n):
