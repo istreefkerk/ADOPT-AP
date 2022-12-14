@@ -39,6 +39,15 @@ class ABMconnector(object):
             self.y_grid = 925.145414826388
 
             self.grid_size =self.x_grid * self.y_grid
+            
+            grid_coordinates = []
+
+            for y in range(self.height):
+                for x in range(self.width): 
+                    grid_coordinates.append((x,y)) 
+
+            self.grid_x_coordinates = self.Extract_x(grid_coordinates) 
+            self.grid_y_coordinates = self.Extract_y(grid_coordinates) 
 
             self.actual_transpiration_crop = np.empty((env_state.grid_size, 177)) # lenght of season (harvest - start of season)
             self.actual_transpiration_crop[:] = np.nan
@@ -376,13 +385,6 @@ class ABMconnector(object):
         index_groundwater = np.zeros(agents.n, dtype = int)
         index_river = np.zeros(agents.n, dtype = int)
         
-
-        coordinates = []
-
-        for y in range(self.height):
-            for x in range(self.width):
-                coordinates.append((x,y)) 
-
         abstraction_points = abstraction_points_DRYP
 
         self.dis_groundwater = np.zeros(agents.n)
@@ -394,13 +396,11 @@ class ABMconnector(object):
         discharge = ro.dis_dt
 
         river_ = np.where(river_network >= 1, 1, 1000)
-        river_network = np.where(discharge >0, river_, 1000)
+        river_network = np.where(discharge > 0, river_, 1000)
 
         for i in range(agents.n):
-            agent_coordinates_x = agents.coordinates[i,0]
-            agent_coordinates_y = agents.coordinates[i,1]
 
-            distance = 1 + np.sqrt(abs((self.Extract_x(coordinates) - agent_coordinates_x)**2 + (self.Extract_y(coordinates) - agent_coordinates_y)**2) ) #distance in relation to other grid points
+            distance = 1 + np.sqrt(abs((self.grid_x_coordinates - agents.coordinates[i,0])**2 + (self.grid_y_coordinates - agents.coordinates[i,1])**2) ) #distance in relation to other grid points
             
             groundwater_distance = distance * abstraction_points #> high numbers is large distance
             river_distance = distance * river_network
@@ -416,7 +416,6 @@ class ABMconnector(object):
             self.dis_groundwater[i] = closest_groundwater
             self.dis_river[i] = closest_river
 
-        
         # return for every agent their abstraction grid location, use that in the abstraction function
         return self.dis_groundwater, self.dis_river, index_groundwater, index_river
 
