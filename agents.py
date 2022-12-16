@@ -566,7 +566,7 @@ class Farmers(AgentBaseClass):
         Returns whether an agent has experience drought in the last 90 days (3 months), yes (1) or no (0) 
         '''
 
-        drought = np.where(self.spei<= -0.5, 1, 0)
+        drought = np.where(self.spei<= -1, 1, 0)
 
         return drought
 
