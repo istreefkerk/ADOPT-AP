@@ -7,7 +7,7 @@ import random
 from netCDF4 import Dataset, num2date, date2num
 from datetime import datetime
 # Global parameters
-ABC_RIVER = 0.9 # River abstraction parameter
+ABC_RIVER = 0.95 # River abstraction parameter
 
 #------------------------------------------------
 #           INITIALIZE ABM CONNECTOR
@@ -110,11 +110,11 @@ class ABMconnector(object):
             
             self.kc = self.get_crop_factor(agents.current_day_of_year, crop_map, env_state.grid_size, self.initial_kc, agents.planting_date, agents.harvest_date) # initial kc can be taken from 
             
-            self.aof = (water_demand[3] + water_demand[4] + water_demand[5]) * self.grid_size /1000 # to m3 #+ agents.large_scale_agriculture() 
+            self.aof = (water_demand[3] + water_demand[4] + water_demand[5]) * self.grid_size /1000 # to m3 
             self.auz = water_demand[1] + water_demand[4]
             self.asz = water_demand[0] + water_demand[1] + water_demand[2]
 
-            if agents.current_day_of_year >= agents.start_dry_season and agents.current_day_of_year <= agents.end_dry_season: # how does this work with adaptation efficacy calculation?? -> take of previous year?
+            if agents.current_day_of_year >= agents.start_dry_season and agents.current_day_of_year <= agents.end_dry_season:
                    
                 self.actual_transpiration_grass[:, 1:] = self.actual_transpiration_grass[:, 0:-1] 
                 self.actual_transpiration_grass[:, 0] = aet #swb.aet_dt
@@ -187,7 +187,7 @@ class ABMconnector(object):
                     assert stage == 4
                     field_kc = 1.0  # pasture land if there is no crop
             elif crop == -1:
-                field_kc = ini_land_use[i] # other land if there is no crop, should specify this further based on land use
+                field_kc = ini_land_use[i]
             
             kc[i] = field_kc
         return kc
@@ -333,13 +333,12 @@ class ABMconnector(object):
 
         # calculate grass yield, per half year
         Kg = 0.4 # yield response factor
-        yield_max = 400 #*1000kg /hectare , ICPAC forage hazard watch
+        yield_max = 10 #tons/hectare
 
         average_aet = np.where(np.nanmean(self.actual_transpiration_grass, axis = 1) > 0, np.nanmean(self.actual_transpiration_grass, axis = 1), 0)
         average_pet = np.where(np.nanmean(self.potential_transpiration_grass, axis = 1) > 0, np.nanmean(self.potential_transpiration_grass, axis = 1), 0)
         
         yield_grass =  np.maximum(0, np.minimum(1 - ( Kg * ( 1 - np.where(average_pet <= 0, 0, (average_aet / average_pet).reshape(self.height, self.width) ))) , 1)) * yield_max
-        #self.yield_grass = np.where(self.land_use.reshape(self.grid) != 50 or 40 or 0, yield_grass, np.zeros(self.grid)) # national parks may be added...
         
         assert (yield_grass != np.nan).all()
         assert (yield_grass >= 0).all()
@@ -347,19 +346,17 @@ class ABMconnector(object):
         return yield_grass.reshape(self.height, self.width)
 
 
-    def Livestock_production(self, grass_yield, sum_livestock, nr_livestock, feed_required, feed_residue, net_birth_rate, weight_gain_rate): # yearly timestep, should differiate between types of livestock
+    def Livestock_production(self, grass_yield, sum_livestock, nr_livestock, feed_required, feed_residue, net_birth_rate, weight_gain_rate):
         ''' 
         Livestock production as a function of grass_yield grass consumed,, and animal specific characteristics
         Based on doi.org/10.1002/2015WR017841
         '''
-        #-> first order preference!
-        # can also scale based on feed_requirement... cows need more food. average_feed_required = self.feed_required.mean(axis=1)
-
+        
         grass_consumed = np.minimum(nr_livestock * feed_required* (1- feed_residue), grass_yield *1000*(nr_livestock /(np.where((nr_livestock >0) & (sum_livestock > 0), nr_livestock /sum_livestock, 1))))
-        grass_availability = np.maximum(grass_yield *1000 *(np.where(sum_livestock > 0, nr_livestock /sum_livestock, 1)),0) #- (grass_consumed * self.agent_population),0) # *1000 to convert to kg from grid to every farmer, ratio to # agent population/household size.. (minimum 1)
+        grass_availability = np.maximum(grass_yield *1000 *(np.where(sum_livestock > 0, nr_livestock /sum_livestock, 1)),0)
 
         carrying_capacity = grass_availability / (feed_required * (1 - feed_residue)) # grass availability to cows.. * nr cows??
-        rate_of_growth = net_birth_rate + np.minimum(np.maximum((weight_gain_rate * (grass_availability / ((1 - feed_residue) * nr_livestock))), 0), 2) # CHECK with FGD -> max number of babies born per year
+        rate_of_growth = net_birth_rate + np.minimum(np.maximum((weight_gain_rate * (grass_availability / ((1 - feed_residue) * nr_livestock))), 0), 2)
         livestock_produce = np.maximum(nr_livestock + (rate_of_growth * (1 - (nr_livestock/carrying_capacity)) * nr_livestock), 1) #per agent
 
         assert (livestock_produce >= 0).all()
@@ -380,7 +377,7 @@ class ABMconnector(object):
     def distance_water(self, abstraction_points_DRYP, ro, agents):
         ''' 
         Calculation distance to water source (river and groundwater abstraction point).
-        Return the distance (number of cells?) and the coordinates of nearest water sources that has water. 
+        Return the distance (number of cells) and the coordinates of nearest water sources that has water. 
         '''
         index_groundwater = np.zeros(agents.n, dtype = int)
         index_river = np.zeros(agents.n, dtype = int)
@@ -433,40 +430,16 @@ class ABMconnector(object):
         water_livestock = np.where(agents.agent_population ==0.0, 0.0, ( 25 * agents.nr_livestock[:,0] +  9.6 * agents.nr_livestock[:,1]) / agents.grid_size * agents.agent_population ) / np.where(agents.HH_size < 1.0, 1.0, agents.HH_size)# L/m2 = mm L/1000 per livestock type, based on 25degrees Celsius. 25 L/day cow, 9.6 L/day goat
         return water_livestock
 
-    def irrigation_schemes(sefl):
-        ''' Define the irrigation schemes in the catchment'''
-        
-        #rapsu:0.266724, 38.233585, 250 acres, 101.171411 hectares
-        #Malkadaka: 0.850197, 38.500191, 70 acres
-        #Oldonyiro, planned. 215 acres
-        pass
-
     def large_scale_agriculture(self):
         ''' 
         Calculate water abstraction of large-scale agriculture
         ''' 
-        farms = 7
-        locations = np.zeros((farms, 2), dtype=np.float32)
-
-        locations[:, 0] = np.array([308372, 323798.28, 309419.36, 308641.78, 318151.49, 314672.65, 310992.84])
-        locations[:, 1] = np.array([9445.55, 13376.73, 8876.57, 11674.72, 10805.31, 9839.26, 9335.96]) 
-
-        grid_large_scale_agriculture = np.zeros(self.grid).reshape(self.height, self.width)
-
-        rate_of_absraction = 37 #m3/hectare
-        hectares = np.array([138, 22, 20, 40, 12, 13 , 5 ])
-        #locations = [308372.04,9445.55], [323798.28,13376.73], [309419.36,8876.57], [308641.78, 11674.72], [318151.49,10805.31], [314672.65,9839.26], [310992.84,9335.96], 
-        
-        # coordinates = self.location_index(locations)
-        # #bring locations to coordinates in grid
-        # for i in range(farms):
-        #     grid_large_scale_agriculture[coordinates[0][i],coordinates[1][i]] = hectares[i] * rate_of_absraction /1000 # from m3 to mm (per grid cell of 1km2)
-        #timaflor (0.085418,37.2781470), kisima (0.120977, 37.416719), lobelia (0.080273, 37.287555), lolomarik (0.105577, 37.280569), uhuru (0.097719, 37.365994), bemack (0.088981, 37.334744), kikwetu (0.084428, 37.301689)
-
-        # , mt kenya flowers/kariki (11 ha) (-0.013945, 37.121485)[290930.61,9998457.82], chulu (9 ha) (0.037395, 37.157242)[294911.62, 4135.42], Kongoni River farm (20 ha) (0.069339, 37.159346)[295145.97, 7668.03] zitten niet in sub-ewaso catchment?
-        return grid_large_scale_agriculture.flatten()
+        pass
 
     def industry(self):
+        ''' 
+        Calculate water abstraction of industry
+        '''
         pass
 
     def abstract_water(self, theta, theta_fc, Duz, abstraction_points_DRYP, env_state, agents, ro):
@@ -492,7 +465,7 @@ class ABMconnector(object):
         discharge = env_state.SZgrid.at_node['discharge']
 
         for i in range(agents.n):
-            if distance_water[0][i] < distance_water[1][i]: # if distance water groundwater is smaller than river -> can also do half half, if distance is equal
+            if distance_water[0][i] < distance_water[1][i]: # if distance water groundwater is smaller than river
                 index_gw = distance_water[2][i]
                 if agents.adapt_measure_3[i] == 1 and agents.current_day_of_year >= agents.planting_date and agents.current_day_of_year <= agents.harvest_date:
                     gw_irr[index_gw] = np.maximum(0, (np.minimum(irr_demand[index_gw] * agents.land_size[i] * agents.agent_population[i] / 100, 5.0))) #hectare to km2 #add irrigation, Max 1 mm
@@ -503,7 +476,7 @@ class ABMconnector(object):
             else:
                 index_riv = distance_water[3][i]
                 if agents.adapt_measure_3[i] == 1 and agents.current_day_of_year >= agents.planting_date and agents.current_day_of_year <= agents.harvest_date:
-                    riv_irr[index_riv] = np.maximum(0, (np.minimum( irr_demand[index_riv] * agents.land_size[i] * agents.agent_population[i] /100, 5.0))) # discharge in that cell #discharge[distance_water[3][i]], Max 5 mm
+                    riv_irr[index_riv] = np.maximum(0, (np.minimum( irr_demand[index_riv] * agents.land_size[i] * agents.agent_population[i] /100, 5.0))) # discharge in that cell , Max 5 mm
         
                 riv_hh[index_riv] = hh_demand[i]
                 riv_liv[agents.livestock_coords[i][1]][agents.livestock_coords[i][0]] = liv_demand[i]
