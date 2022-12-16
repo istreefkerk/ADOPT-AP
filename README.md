@@ -16,4 +16,4 @@ https://doi.org/10.3389/frwa.2022.1037971
 Publications of sub-models:
 
 - DRYP 1.0 model (Quichimbo et al., 2021): https://doi.org/10.5194/gmd-14-6893-2021
-= ADOPT model (Wens et al., 2020): https://doi.org/10.3389/frwa.2020.00015
+- ADOPT model (Wens et al., 2020): https://doi.org/10.3389/frwa.2020.00015
