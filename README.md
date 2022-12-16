@@ -2,7 +2,7 @@
 
 ## Overview
 
-![Schematic model overview of ADOPT-AP.](/docs/figure_1.jpg "Schematic model overview")
+![Schematic model overview of ADOPT-AP.](/docs/Figure_1.jpg "Schematic model overview")
 
 ## Research papers
 
