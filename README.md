@@ -2,7 +2,7 @@
 
 ## Overview
 
-<img src="[https://github.com/istreefkerk/ADOPT-AP/blob/f733ff79541852e9a26fc08c47ac5b1197656e9e/docs/Figure_1.jpg]" width=50% height=50%>
+<img src="https://github.com/istreefkerk/ADOPT-AP/blob/f733ff79541852e9a26fc08c47ac5b1197656e9e/docs/Figure_1.jpg" width=50% height=50%>
 
 ## Research papers
 
