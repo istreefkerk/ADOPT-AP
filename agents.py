@@ -278,7 +278,7 @@ class Farmers(AgentBaseClass):
             radius: radius, in number of cells, of neighborhood to get.
 
         Returns:
-            A list of coordinate tuples (column (width), row (heighy)) representing the neighborhood;
+            A list of coordinate tuples (column (width), row (height)) representing the neighborhood;
 
         '''
         include_center = True
@@ -902,13 +902,7 @@ class Farmers(AgentBaseClass):
 
         return  average_neighbours_adopted
 
-
-#------------------------------------------------
-#                    MARKET
-#------------------------------------------------
-
-# to do
-
+    
 #------------------------------------------------
 #                 STEP FUNCTION
 #------------------------------------------------
