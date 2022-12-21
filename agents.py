@@ -271,7 +271,7 @@ class Farmers(AgentBaseClass):
     def coords_neighbourhood(self, pos, radius):
         
         '''Return a list of cells that are in the neighborhood of a
-        certain point (for each farmer)
+        certain point (for each farmer). Code based on Mesa: https://github.com/projectmesa/mesa.
 
         Args:
             pos: coordinate tuple for the neighborhood to get.
@@ -281,10 +281,7 @@ class Farmers(AgentBaseClass):
             A list of coordinate tuples (column (width), row (height)) representing the neighborhood;
 
         '''
-        include_center = True
-        moore = True
         coordinates_neighbourhood = []
-        maximum = []
         self.torus = True #otherwise index out of bounds..
         gt = self.gt
         pos = coords_to_pixels(pos, gt)
@@ -323,7 +320,9 @@ class Farmers(AgentBaseClass):
         return array
 
     def max_neighbourhood(self, coords, values):
-        '''Returns grid position of max value in neighborhood of each agent'''
+        '''
+        Returns grid position of max value in neighborhood of each agent
+        '''
         indices = []
         for i in range(self.n):
             indices.append(coords[i][values[i].index(max(values[i]))])
@@ -332,13 +331,15 @@ class Farmers(AgentBaseClass):
     def out_of_bounds(self, pos):
         '''
         Determines whether position is off the grid, returns the out of
-        bounds coordinate.
+        bounds coordinate. Code by Mesa: https://github.com/projectmesa/mesa.
         '''
         x, y = pos
         return x < 0 or x >= self.width or y < 0 or y >= self.height
 
     def torus_adj(self, pos):
-        '''Convert coordinate, handling torus looping.'''
+        '''
+        Convert coordinate, handling torus looping. Code by Mesa: https://github.com/projectmesa/mesa.
+        '''
         if not self.out_of_bounds(pos):
             return pos
         elif not self.torus:
