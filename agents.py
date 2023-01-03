@@ -750,7 +750,7 @@ class Farmers(AgentBaseClass):
             for i in range(self.n):
 
                 #[0] = MIGRATION
-                if costs_migration < self.assets[i] : #and PMT_0[i] > PMT_1[i]:
+                if costs_migration < self.assets[i]:
                     if likelihood_to_adapt_0[i] > Random_threshold[i]:
                         self.adapt_measure_0[i] = 1
                         
@@ -760,7 +760,7 @@ class Farmers(AgentBaseClass):
                         self.assets[i] = self.assets[i] - costs_migration
 
                 #[1] = LIVESTOCK BREED CHANGE
-                elif costs_livestock < self.assets[i] : #and PMT_1[i] > PMT_0[i]
+                elif costs_livestock < self.assets[i]:
                     
                     if likelihood_to_adapt_1[i] > Random_threshold[i]:
                         self.assets[i] = self.assets[i] - costs_livestock
@@ -798,7 +798,7 @@ class Farmers(AgentBaseClass):
 
             for i in range(self.n):
                 #[2] = CROP CHANGE
-                if costs_crops < self.assets[i]: #and PMT_2[i] > PMT_3[i]
+                if costs_crops < self.assets[i]:
                     
                     if likelihood_to_adapt_2[i] > Random_threshold[i]:
                         self.assets[i] = self.assets[i] - costs_crops 
@@ -809,7 +809,7 @@ class Farmers(AgentBaseClass):
                         crop_change_map[self.coordinates[i,1],self.coordinates[i,0]] = 11 # set cropmap to casava
                 
                 #[3] = IRRIGATION CHANGE
-                if costs_irrigation < self.assets[i]: #and PMT_3[i] > PMT_2[i]
+                if costs_irrigation < self.assets[i]:
                     
                     if self.at_river[i] >= 1 or abstraction_points[self.coordinates[i,1],self.coordinates[i,0]] == True: #NOT WORKING YET
                         if likelihood_to_adapt_3[i] > Random_threshold[i]:
