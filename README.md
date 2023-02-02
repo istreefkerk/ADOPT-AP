@@ -1,6 +1,6 @@
 # ADOPT-AP
 
-Welcome to the model code of ADOPT-AP. No data is included in this repository, but we hope this code is useful in exploring how to couple water and human systems in a agent-based Python environment. Please note that this model is applied for agro-pastoralists in East Africa specifically - modifications are needed when applying it to other case studies, types of agents and their decisions.
+Welcome to the model code of ADOPT-AP. No data are included in this repository, but we hope this code is useful in exploring how to couple water and human systems in a agent-based Python environment. Please note that this model is applied for agro-pastoralists in East Africa specifically - modifications are needed when applying it to other case studies, types of agents and their decisions.
 
 ## Overview
 
