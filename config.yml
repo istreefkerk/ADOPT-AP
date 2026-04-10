@@ -1,48 +1,68 @@
 general:
   size: small
-  start_time: 2005-01-01T00:00:00
-  end_time: 2015-12-31T00:00:00
+  start_time: 2002-01-01T00:00:00
+  end_time: 2023-06-30T00:00:00
+  spinup_time: 1990-01-01T00:00:00
   ABM: False # running abm
   BAU: False # Business as usual
   model: Sub-Ewaso
-  sensitivity: False # sensitivity analysis
+  calibrate: False # sensitivity analysis
   report_folder: 'report'
+  scenario: None # create scenarios 
+  export_inital_on_spinup: true
+
+###
+# This section can contain settings to change the behavior or the agents.
+agent_settings:
+  ###
+  # If this setting is set to true, the farmers in the model are activated in a set order, allowing for better reproducability of the model.
+  fix_activation_order: true
 
 logging:
   logfile: down2earth.log  # DEBUG, INFO, WARNING, ERROR, CRITICAL
   loglevel: DEBUG
 
-draw:
-  draw_every_nth_agent: 1
-  draw_geography:
-  draw_agents:
-    farmers:
-      color: "#FF0000"
-      variable: elevation
-      minimum: 33000
-      maximum: 33400
-
-adaptation:
-  alpha: 0.5
-  abstraction_p: 0.2
-  irrigation_demand_factor: 1
-  neighbourhood_radius: 10000
-  adapt_costs: 50
+# parameter values obtained from calibration procedure
+parameters:
+  abstraction_p: 0.10210027457775349
+  adapt_costs: 2.683447501369759
+  alpha: 0.565513910199628
+  aq_sat_hyd_con: 19.29133392509137
+  ch_sat_hyd_con: 0.369318385638006
+  intention_to_behavior: 0.6795582250574321
+  irrigation_demand_factor: 0.323410460786553
+  neighbourhood_radius: 3629.820766278329
+  recession_time: 0.2314330173214787
+  rooting_depth: 1.59267988894642
+  sat_hyd_con: 0.27540123275996337
+  specific_yield: 0.05380995415222608
+  
+###
+# Here, you can configure which data should be saved from the model in the `report` folder. This should be formatted as follows:
+#
+# - **name**: name of the folder to which the data is saved.
+#
+#   - **type**: agent type e.g., farmer. Should be identical to attribute name in Agents class.
+#   - **function**: whether to use a function to parse the data. 'null' means the data is saved literally, 'mean' takes the mean etc. Options are given in honeybees's documentation`.
+#   - **varname**: attribute name of variable in agent class.
+#   - **format**: format to save to.
+#   - **initial_only**: if true only save the data for the first timestep.
+#   - **save**: save variable in model run, or export, or both (save/save+export/export).
 
 report:
 
-  livestock_produce:
+  milk_production:
     function: mean
     type: farmers
-    varname: livestock_produce
+    varname: milk_production
     per_timestep: false
     format: csv
     save: save
 
-  livestock_produce_individual:
+  adapt_measure_0:
     function: null
     type: farmers
-    varname: livestock_produce
-    per_timestep: True
+    varname: adapt_measure_0
+    per_timestep: false
     format: npy
-    save: export
+    save: save
