@@ -13,9 +13,9 @@ An overview of the proposed model framework can be found below. ADOPT-AP consist
 ## Research papers
 
 The publications of ADOPT-AP can be found here:
-https://doi.org/10.3389/frwa.2022.1037971
-https://doi.org/10.1016/j.ijdrr.2025.105309
-https://doi.org/10.5194/egusphere-2024-2382
+- https://doi.org/10.3389/frwa.2022.1037971
+- https://doi.org/10.1016/j.ijdrr.2025.105309
+- https://doi.org/10.5194/egusphere-2024-2382
 
 Publications of sub-models:
 
