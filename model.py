@@ -10,7 +10,7 @@ from network import Network
 from initial import Init_
 from honeybees.area import Area
 from artists import Artists
-from DRYP.main_DRYPv2_3 import DRYP_Model
+from DRYP.run_DRYP import DRYP_Model
 
 from datetime import timedelta
 
