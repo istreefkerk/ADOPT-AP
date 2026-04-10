@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import rasterio
-
+import random
 from honeybees.visualization.ModularVisualization import ModularServer
 from honeybees.visualization.modules import ChartModule
 from honeybees.visualization.canvas import Canvas
@@ -12,7 +12,7 @@ from honeybees.visualization.canvas import Canvas
 from model import D2EModel
 
 def get_study_area():
-    with rasterio.open('DataDrive/Sub-Ewaso/dem_square.tif') as src: #'DataDrive/Sub-Ewaso/dem_square.tif', test/test_dem.tif'
+    with rasterio.open('DataDrive/Ewaso/EW_1k_dem_m.asc') as src: # set model bounds
         bounds = src.bounds
         print(bounds)
     
@@ -27,24 +27,25 @@ def get_study_area():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    
+    # settings 
     parser.add_argument('--headless', dest='headless', action='store_true')
-    parser.set_defaults(headless=True) # was False
+    parser.set_defaults(headless=True) 
     parser.add_argument('--no-browser', dest='browser', action='store_false')
     parser.set_defaults(browser=True)
     parser.add_argument('--port', dest='port', type=int, default=8521)
-    #parser.add_argument('--export_folder', dest='export_folder', type=str, default=None)
+    parser.add_argument('--config', dest='config', type=str, default='down2earth_true.yml')
+    parser.add_argument('--export_folder', dest='export_folder', type=str, default=None)
     args = parser.parse_args()
 
     study_area = get_study_area()
 
-    CONFIG_PATH = 'Config.yml'
+    CONFIG_PATH = parser.parse_args().config 
 
-    MODEL_NAME = 'DOWN2EARTH'
+    MODEL_NAME = 'DOWN2EARTH' # model name
     
-    filename_input = 'DataDrive/Sub-Ewaso/input.dmp' #test/input_test.dmp
+    filename_input = 'DataDrive/Ewaso/input.dmp' # insert input file
 
-    export_folder = 'report'
+    export_folder = parser.parse_args().export_folder
     
     series_to_plot = []
 
