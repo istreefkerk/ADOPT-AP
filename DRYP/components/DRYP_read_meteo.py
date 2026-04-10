@@ -17,7 +17,7 @@ class rainfall(object):
 		""" Setting variables and time steps for reading inputs
 		"""
 		if inputfile.first_read == 1:
-			t_end = inputfile.Sim_period.days
+			t_end = inputfile.ndays#Sim_period.days
 			
 			if inputfile.dt != 60:
 				date_sim_m = pd.date_range(inputfile.ini_date,
@@ -40,8 +40,8 @@ class rainfall(object):
 		# To be completed
 		# this will allow to read just one netCDF files for the simulation
 		# to read multiples files, take a look at input_datasets_bigfiles
-		inputfile.netcf_savi = 0
-		inputfile.netcf_kc = 0
+		#inputfile.netcf_savi = 0
+		#inputfile.netcf_kc = 0
 		
 		
 		if inputfile.first_read == 1:			
@@ -123,142 +123,6 @@ class rainfall(object):
 					dataETo.index = pd.DatetimeIndex(dataETo['Date'])
 					dataETo = (dataETo.resample(inputfile.Agg_method).sum()).reset_index()
 				time_ETo = dataETo["Date"]
-			
-			# optional data	----------------------------------------------------------
-			# Read time series of Soil-Adjusted vegetation index
-			self.idatesavi = None
-			if os.path.exists(inputfile.fname_savi):
-				if inputfile.netcf_savi == 1:
-					datasavi = Dataset(inputfile.fname_savi, 'r')
-					time_savi_aux = num2date(datasavi['time'][:-1],
-							units=datasavi['time'].units,
-							calendar=datasavi['time'].calendar)
-					time_savi = []
-					for iidate in time_savi_aux:
-						if not iidate == None:
-							time_savi.append(datetime(iidate.year,
-								iidate.month, iidate.day,
-								iidate.hour,iidate.minute)
-								)
-						else:
-							time_savi.append(None)
-					time_savi = np.array(time_savi)
-				else:
-					datasavi = pd.read_csv(inputfile.fname_savi)
-					datasavi["Date"] = pd.to_datetime(datasavi['Date'])
-					if inputfile.dt >= 60:
-						
-						datasavi.index = pd.DatetimeIndex(datasavi['Date'])
-						datasavi = (datasavi.resample(inputfile.Agg_method).pad())#.reset_index()
-						
-					time_savi = datasavi["Date"]
-				
-				if np.where(datasavi['Date'] == inputfile.ini_date) is not None:
-				#if (inputfile.ini_date in datasavi['Date'].values):
-					#idsavis = datasavi.index.get_loc(inputfile.ini_date, method='nearest')
-					idsavis = np.where(datasavi['Date'] == inputfile.ini_date)[0][0]
-				else:
-					raise Exception("Start date of SAVI is outside simulation period")
-				
-				if np.where(datasavi['Date'] == inputfile.end_date) is not None:
-				
-					#idsavie = datasavi.index.get_loc(inputfile.end_datet, method='nearest')
-					idsavie = np.where(datasavi['Date'] == inputfile.end_date)[0][0]
-					
-				else:
-					raise Exception("End date of SAVI is outside simulation period")
-				
-				self.idatesavi = np.arange(idsavis,idsavie+1)#time_savi.loc[idsavis:idsavie+1]
-				
-				self.datasavi = datasavi
-			
-			# Read time series of Soil-Adjusted vegetation index fpr riparian area
-			# this component is for the interception
-			self.idatesavi_rip = None
-			if os.path.exists(inputfile.fname_savi_rip):
-				if inputfile.netcf_savi == 1:
-					datasavi = Dataset(inputfile.fname_savi, 'r')
-					time_savi_aux = num2date(datasavi['time'][:-1],
-							units=datasavi['time'].units,
-							calendar=datasavi['time'].calendar)
-					time_savi = []
-					for iidate in time_savi_aux:
-						if not iidate == None:
-							time_savi.append(datetime(iidate.year,
-								iidate.month, iidate.day,
-								iidate.hour,iidate.minute)
-								)
-						else:
-							time_savi.append(None)
-					time_savi = np.array(time_savi)
-				else:
-					datasavi = pd.read_csv(inputfile.fname_savi)
-					datasavi["Date"] = pd.to_datetime(datasavi['Date'])
-					if inputfile.dt >= 60:
-						
-						datasavi.index = pd.DatetimeIndex(datasavi['Date'])
-						datasavi = (datasavi.resample(inputfile.Agg_method).pad())#.reset_index()
-						
-					time_savi = datasavi["Date"]
-				
-				if np.where(datasavi['Date'] == inputfile.ini_date) is not None:
-				#if (inputfile.ini_date in datasavi['Date'].values):
-					#idsavis = datasavi.index.get_loc(inputfile.ini_date, method='nearest')
-					idsavis = np.where(datasavi['Date'] == inputfile.ini_date)[0][0]
-				else:
-					raise Exception("Start date of SAVI is outside simulation period")
-				
-				if np.where(datasavi['Date'] == inputfile.end_date) is not None:
-				
-					#idsavie = datasavi.index.get_loc(inputfile.end_date, method='nearest')
-					idsavie = np.where(datasavi['Date'] == inputfile.end_date)[0][0]
-					
-				else:
-					raise Exception("End date of SAVI is outside simulation period")
-				
-				self.idatesavi_rip = np.arange(idsavis,idsavie+1)#time_savi.loc[idsavis:idsavie+1]
-				
-				# save savi_rip as object to pass to other components
-				self.datasavi_rip = datasavi
-
-			
-			# Read time series of crop coeficient factor
-			self.idatekc = None
-			if os.path.exists(inputfile.fname_kc):
-				if inputfile.netcf_kc == 1:
-					datakc = Dataset(inputfile.fname_kc, 'r')
-					time_kc_aux = num2date(datakc['time'][:-1],
-							units=datakc['time'].units,
-							calendar=datakc['time'].calendar)
-					time_kc = []
-					
-					for iidate in time_kc_aux:
-						if not iidate == None:
-							time_kc.append(datetime(iidate.year,
-								iidate.month,iidate.day,
-								iidate.hour,iidate.minute)
-								)
-						else:
-							time_kc.append(None)
-					time_kc = np.array(time_kc)
-				else:
-					datakc = pd.read_csv(inputfile.fname_kc)
-					datakc["Date"] = pd.to_datetime(datakc['Date'])
-					if inputfile.dt >= 60:
-						datakc.index = pd.DatetimeIndex(datakc['Date'])
-						datakc = (datakc.resample(inputfile.Agg_method).pad())#.reset_index()
-					time_kc = datakc["Date"]
-				
-				if (inputfile.end_date in datakc['Date'].values):
-					idkcs = datakc.index.get_loc(inputfile.end_date, method='nearest')
-					
-				else:
-					raise Exception("Dates of Kc are outside simulation period")
-				
-				self.idatekc = time_kc.loc[idkcis:idkce+1]
-				
-				self.datakc = datakc
-				
 				
 			# Time periods-----------------------------------------------------------------------
 			# Find id of the precipitation array for the the simulation period 
@@ -317,66 +181,20 @@ class rainfall(object):
 		
 		if not np.isnan(self.idatepre[j_tp]):
 			if inputfile.netcf_pre == 1:
-				self.rain = (self.fpre.variables['pre'][self.idatepre[j_tp]][:]).T.flatten()
+				self.rain = (self.fpre.variables['pre'][self.idatepre[j_tp]][:]).flatten()
 			else: # Uniform precipitation over the whole catchement
 				self.rain = np.ones(env_state.grid_size)*self.fpre['pre'][self.idatepre[j_tp]]
 			self.rain_day_before = 1
 			
 		if not np.isnan(self.idateETo[j_te]):
 			if inputfile.netcf_ETo == 1:
-				self.PET = (self.dataETo.variables['pet'][self.idateETo[j_te]][:]).T.flatten()*inputfile.unit_sim
+				self.PET = (self.dataETo.variables['pet'][self.idateETo[j_te]][:]).flatten()*inputfile.unit_sim
 				#self.PETr += self.dataETo.variables['pet'][self.idateETo[j_te]][:].flatten()*inputfile.unit_sim
 			else: # Uniform precipitation over the whole catchement
-				self.PET[:] = self.dataETo['ETo'][self.idateETo[j_te]]*inputfile.unit_sim
+				self.PET[:] = self.dataETo['pet'][self.idateETo[j_te]]*inputfile.unit_sim
 				#Cummulative value of ETp for daily stimation of AET in river cells
 				#self.PETr += self.dataETo['ETo'][self.idateETo[j_te]]*inputfile.unit_sim
 		
-		# read SAVI for the soil area to estimate Kc 
-		if self.idatesavi is not None:
-			if inputfile.netcf_ETo == 1:
-				self.SAVI = (self.datasavi.variables['savi'][self.idatesavi[j_tsavi]][:]).T.flatten()
-				#self.PETr += self.dataETo.variables['pet'][self.idateETo[j_te]][:].flatten()*inputfile.unit_sim
-			else: # Uniform precipitation over the whole catchement
-				self.SAVI = (np.ones(env_state.grid_size)*self.datasavi['savi'][self.idatesavi[j_tsavi]]).flatten()
-				#Cummulative value of ETp for daily stimation of AET in river cells
-				#self.PETr += self.dataETo['ETo'][self.idateETo[j_te]]*inputfile.unit_sim
-		else:
-			self.SAVI = 1
-		
-		# read SAVI for the riparian area to estimate Kc 
-		if self.idatesavi is not None:
-		#if not np.isnan(self.idatesavi[j_tv]):
-			if inputfile.netcf_ETo == 1:
-				self.SAVIrip = (self.datasavi.variables['savi'][self.idatesavi[j_tsavi]][:]).T.flatten()
-				#self.PETr += self.dataETo.variables['pet'][self.idateETo[j_te]][:].flatten()*inputfile.unit_sim
-			else: # Uniform precipitation over the whole catchement
-				self.SAVIrip = (np.ones(env_state.grid_size)*self.datasavi['savi'][self.idatesavi[j_tsavi]]).flatten()
-				#Cummulative value of ETp for daily stimation of AET in river cells
-				#self.PETr += self.dataETo['ETo'][self.idateETo[j_te]]*inputfile.unit_sim
-		else:
-			self.SAVIrip = 1
-		
-		if self.idatekc is not None:
-		#if not np.isnan(self.idateETo[j_tk]):
-			if inputfile.netcf_ETo == 1:
-				self.Kc = (self.datakc.variables['kc'][self.idatekc[j_tkc]][:]).T.flatten()
-				#self.PETr += self.dataETo.variables['pet'][self.idateETo[j_te]][:].flatten()*inputfile.unit_sim
-			else: # Uniform precipitation over the whole catchement
-				self.Kc = (np.ones(env_state.grid_size)*self.datakc['kc'][self.idatekc[j_tkc]]).flatten()
-				#Cummulative value of ETp for daily stimation of AET in river cells
-				#self.PETr += self.dataETo['ETo'][self.idateETo[j_te]]*inputfile.unit_sim
-		else:
-			self.Kc = 1
-		
-		self.LAI = None
-		self.LAIrip = None
-		
-	def work_out_stable_timestep(self,):
-		"""
-		Something like this might be needed
-		"""
-		pass
-
 class read_temporal_dataset():
 	"""Read all input dataset
 	INPUT:
@@ -780,7 +598,7 @@ class input_datasets_bigfiles(object):
 	def __init__(self, inputfile, env_state):
 		#dt = np.min([inputfile.dtOF, inputfile.dtUZ, inputfile.dtSZ])
 		if inputfile.first_read == 1:
-			t_end = inputfile.Sim_period.days
+			t_end = inputfile.ndays#Sim_period.days
 			self.date_sim_dt = pd.date_range(inputfile.ini_date,
 				periods = t_end*inputfile.dt_hourly*inputfile.dt_sub_hourly,
 				freq = str(np.int(inputfile.dt))+'min')
@@ -793,11 +611,11 @@ class input_datasets_bigfiles(object):
 		self.year_pet = int(inputfile.ini_date.year)
 		self.dt = inputfile.dt
 		self.nsteps_pre = int(inputfile.dt/inputfile.dt_pre)
-		self.nsteps_pet = int(inputfile.dt/inputfile.dt_pet)
+		self.nsteps_pet = int(inputfile.dt/inputfile.dt_ETo)
 		self.nsteps_day_pre = int(1440/inputfile.dt_pre)
-		self.nsteps_day_pet = int(1440/inputfile.dt_pet)
+		self.nsteps_day_pet = int(1440/inputfile.dt_ETo)
 		self.nsteps_hour_pre = int(inputfile.dt_pre/60)
-		self.nsteps_hour_pet = int(inputfile.dt_pet/60)
+		self.nsteps_hour_pet = int(inputfile.dt_ETo/60)
 		self.idatesavi = None
 		self.idatekc = None
 	
@@ -867,244 +685,3 @@ class input_datasets_bigfiles(object):
 			self.PET += PET
 			self.year_pet = int(idate_pet.year)
 			idate_pet += timedelta(hours=1)
-		
-		# optional dataset
-		self.LAI = None
-		# Soil-Adjusted Vegetation Index
-		if self.idatesavi is not None:
-			idate_savi = self.date_sim_dt[j] - timedelta(hours=(self.nsteps_savi-1))
-			self.SAVI = np.zeros(env_state.grid_size)
-			for i in range(self.nsteps_savi):			
-				if self.year_savi == idate_savi.year:				
-					hour_savi = int(int(idate_savi.strftime('%H'))/self.nsteps_hour_savi)
-					j_te = (int(idate_savi.strftime('%j'))-1)*self.nsteps_day_savi + hour_savi
-					if self.read_before_savi == 1:
-						fname_savi = inputfile.fname_TSMeteo + '_' + str(idate_savi.year) + '.nc'
-						self.fsavi = Dataset(fname_savi, 'r')
-						SAVI = (self.fsavi.variables['savi'][j_te][:]).flatten()
-						self.read_before_savi = 0
-					else:
-						SAVI = (self.fsavi.variables['savi'][j_te][:]).flatten()
-						self.read_before_savi = 0
-				else:
-					hour_savi = int(int(idate_savi.strftime('%H'))/self.nsteps_hour_savi)
-					j_te = (int(idate_savi.strftime('%j'))-1)*self.nsteps_day_savi + hour_savi 
-					fname_savi = inputfile.fname_TSMeteo + '_' + str(idate_savi.year) + '.nc'
-					self.fsavi = Dataset(fname_savi, 'r')
-					SAVI = (self.fsavi.variables['savi'][j_te][:]).flatten()				
-					self.read_before_savi = 0
-				SAVI[SAVI < 0] = 0
-				self.SAVI += SAVI			
-				self.year_savi = int(idate_savi.year)
-				idate_savi += timedelta(hours=1)
-		else:
-			self.SAVI = 1
-			
-		
-		# Crop coeficient factor
-		if self.idatekc is not None:
-			idate_kc = self.date_sim_dt[j] - timedelta(hours=(self.nsteps_kc-1))
-			self.Kc = np.zeros(env_state.grid_size)
-			for i in range(self.nsteps_kc):			
-				if self.year_kc == idate_kc.year:				
-					hour_kc = int(int(idate_kc.strftime('%H'))/self.nsteps_hour_kc)
-					j_te = (int(idate_kc.strftime('%j'))-1)*self.nsteps_day_kc + hour_kc
-					if self.read_before_kc == 1:
-						fname_kc = inputfile.fname_TSMeteo + '_' + str(idate_kc.year) + '.nc'
-						self.fkc = Dataset(fname_kc, 'r')
-						Kc = (self.fkc.variables['kc'][j_te][:]).flatten()
-						self.read_before_kc = 0
-					else:
-						Kc = (self.fkc.variables['kc'][j_te][:]).flatten()
-						self.read_before_kc = 0
-				else:
-					hour_kc = int(int(idate_kc.strftime('%H'))/self.nsteps_hour_kc)
-					j_te = (int(idate_kc.strftime('%j'))-1)*self.nsteps_day_kc + hour_kc 
-					fname_kc = inputfile.fname_TSMeteo + '_' + str(idate_kc.year) + '.nc'
-					self.fkc = Dataset(fname_kc, 'r')
-					Kc = (self.fkc.variables['kc'][j_te][:]).flatten()				
-					self.read_before_kc = 0
-				Kc[Kc < 0] = 0
-				self.Kc += Kc			
-				self.year_kc = int(idate_kc.year)
-				idate_kc += timedelta(hours=1)
-		else:	
-			self.Kc = 1
-			
-#def read_dataset_function(fname, reproject, aggregate, fill_value, interpolate, first_read, t, freq_dt, *dataset)
-#	fname_pre = inputfile.fname_TSPre + '_' + str(idate_pre.year)# + '.nc'			
-#	if (first_read == 1) or (t == 0):		
-#		# read dataset
-#		data = xr.open_mfdataset(fname)
-#		
-#		# reproject dataset
-#		if reproject == 1:
-#			data = reproject_dataset(self.dataset, keys)
-#		
-#		if inputfile.dt_pre != self.dt:
-#			# temporal resampling
-#			self.fpre = self.fpre.resample(time=self.freq_dt).sum()
-#						
-#		# flag to no read every time the whole dataset
-#		self.read_before_pre = 0
-#				
-#		if inputfile.interpolate_pre == 1:
-#			# Spatial interpolation
-#			fpre = self.fpre.isel(time=[j_tp]).interp(lat=(env_state.lat), lon=(env_state.lon))
-#		else:
-#			fpre = self.fpre.isel(time=[j_tp])
-#		#print(np.mean(fpre.mean('time')))		
-#		self.rain = np.array(fpre.variables['pre'][0][:]).flatten()
-
-class read_dataset(object):
-	"""Read netcdf files as input datasets
-	
-	"""
-	def __init__(self, dt, dt_ds, ini_date, end_date, file_format,
-		reproject, interpolate, grid_length):
-		"""set model grid time series and model files
-		INPUT
-		-----
-		dt:			model time step
-		dt_ds:		data set frequency
-		ini_date:	datetime- inital date for the simulation
-		end_date:	datetime- final date for the simulation
-		file_format:integer- 1: read multiple files
-		reproject:	integer- 1: activate reprojection
-		interpolate: integer- 1: activate interpolation
-		grid_length: size of the grid
-		OUTPUT
-		------
-		
-		"""
-				
-		# Define the time step for temporal aggregation
-		self.freq_dt=str(np.int(dt))+'min'
-		
-		# Define dataset x and y intervals for spatial interpolation
-		#self.lon = env_state.lon
-		#self.lat = env_state.lat
-		
-		# Check if the simulation period is rigth
-		
-		if ini_date >= end_date:
-			sys.exit("End of the simulation period should be later than initial date")
-		
-		
-		self.date_sim_dt = pd.date_range(ini_date, end_date,
-			#periods = t_end*inputfile.dt_hourly*inputfile.dt_sub_hourly,
-			freq = str(np.int(dt))+'min')
-		self.date_sim_dt = self.date_sim_dt[:-1]
-		
-		# Save number of time steps
-		# self.t_end = t_end
-		self.read_before = 1
-		self.fill_value = 1
-		self.file_format = file_format
-		self.reproject_ds = reproject
-		self.interpolate_ds = interpolate
-		self.read_before_ds = 1
-		self.grid_length = grid_length
-		
-		# rainfall component time step
-		self.dt = dt
-		self.dt_ds = dt_ds
-		self.ini_date = ini_date
-		self.end_date = end_date
-		
-		# check if temporal interpolation is required
-		if dt_ds != self.dt:
-			self.nsteps_day_ds = int(1440/dt)
-		else:
-			self.nsteps_day_ds = int(1440/dt_ds)
-		
-		self.nsteps_hour_ds = int(self.dt_ds/60)
-		
-	def get_one_step_dataset(self, j_step, fname_ds, field):
-		"""
-		Call this to execute a step in the model.
-		INPUT:
-			j_step:		Counter for time
-			fname_ds:	filename dataset
-		Outputs:
-			data:	precipitation for the actual time step
-					
-		"""
-		
-		# find the date of the simulation time period at time step j_step 
-		idate_ds = self.date_sim_dt[j_step]# - timedelta(hours=(self.nsteps_pre-1))
-		
-		if self.file_format > 0:
-		
-			# create zero array for precipitation
-			#data = np.zeros(env_state.grid_size)
-			if self.file_format == 1:
-				# find the location of the date in the dataset
-				# lacation depending on the hour
-				hour_ds = int(int(idate_ds.strftime('%H'))/self.nsteps_hour_ds)
-				
-				# location depending on the day
-				j_step = int(int(idate_ds.strftime('%j'))-1)*self.nsteps_day_ds + hour_ds
-			
-			keys = ['lon', 'lat']
-			
-			# Read data at the begining of the simulation or if a new dataset starts
-			if (self.read_before_ds == 1) or (j_step == 0):
-				
-				# Filename of the current year
-				if self.file_format == 2:
-					fname_ds = fname_ds + '_' + str(idate_ds.year)# + '.nc'
-				
-				# read dataset
-				self.ds = xr.open_mfdataset(fname_ds)
-				
-				# slice data for the simulation period
-				# Do not apply for multi-data files
-				if self.file_format == 1:
-					self.ds = self.ds.sel(time=slice(self.ini_date, self.end_date))
-				
-				# reproject dataset
-				if self.reproject_ds == 1:
-					self.ds = reproject_dataset(self.ds, keys)
-				
-				if self.dt_ds != self.dt:
-					# temporal resampling
-					self.ds = self.ds.resample(time=self.freq_dt).sum()
-								
-				# flag to no read every time the whole dataset
-				self.read_before_ds = 0
-						
-			if self.interpolate_ds == 1:
-				# Spatial interpolation
-				ds = self.ds.isel(time=[j_step]).interp(lat=lat, lon=lon)
-			else:
-				ds = self.ds.isel(time=[j_step])
-				
-			data = np.array(ds.variables[field][0][:]).flatten()
-		
-		else:
-		
-			# Read time series of precipitation	csv
-			if (self.read_before_ds == 1) or (j_step == 0):
-				self.ds = pd.read_csv(fname_ds)
-				
-				# change to txt to datetime
-				self.ds["Date"] = pd.to_datetime(self.ds['Date'])#,format = '%d/%m/%Y %H:%M')
-				
-				# slice data set, select only the simulation period
-				idate = np.where((self.ds["Date"] < self.end_date)
-								& (self.ds["Date"] >= self.ini_date))[0]
-				
-				self.ds = self.ds.iloc[idate]
-				
-				if self.dt > 60:
-					# aggregate data to the model time step
-					self.ds.index = pd.DatetimeIndex(self.ds['Date'])
-					self.ds = (self.ds.resample(self.freq_dt).sum()).reset_index()
-				
-				#time_pre = fpre["Date"]
-				self.read_before_ds = 0
-				
-			data = np.full(self.grid_length, self.ds[field].iloc[j_step])
-		
-		return data

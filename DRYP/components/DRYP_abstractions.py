@@ -35,7 +35,7 @@ class abstractions(object):
 				time_pre = fabc["Date"]
 						
 			# Time periods-----------------------------------------------------------------------
-			idate_aux = np.where((time_pre < inputfile.end_datet) & (time_pre >= inputfile.ini_date))[0]
+			idate_aux = np.where((time_pre < inputfile.end_date) & (time_pre >= inputfile.ini_date))[0]
 			if inputfile.dtUZ_pre != 60:
 				idateabc = np.zeros(len(date_sim_m))
 				idate_pre = date_sim_m.isin(time_pre)

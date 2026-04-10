@@ -12,6 +12,9 @@ agg_balance_global = 'D'
 agg_balance_local = 'D'
 point_aggre = 'D'
 
+# save varoiables
+save_all = True
+
 # print variables
 print_precipitation = False
 print_infiltration = False
@@ -23,7 +26,9 @@ print_percolation = True
 print_soilmoisture = True
 print_translosses = True
 print_discharge = True
-print_cropKc = False
+print_cropKc = True
+print_Eca = True
+print_Pth = True
 
 # print maps
 print_maps_end = True
@@ -62,14 +67,14 @@ class GlobalTimeVarPts:
 		self.FRC = []
 		self.WTE = []
 		self.HEAD = []	# hydraulic head/water table bottom layer
-		self.WRSI = []
-		self.THTl = []
+		self.WRSI = []	# water requirement satisfation index
+		self.THTl = []	# soil moisture, second layer
 		
-		self.ETSZ = []
+		self.ETSZ = []	# capollary rise
 		
 		self.PTH = []	# thrufall
-		self.ECA = []	# Evaporation from canopy
-		self.Kc = []
+		self.ECN = []	# Evaporation from canopy
+		self.Kc = []	# crop factor
 	
 	def extract_point_var_pre(self, nodes, pre):
 		"""extract variables from rainfall component
@@ -89,6 +94,13 @@ class GlobalTimeVarPts:
 		"""
 		self.INF.append(inf.inf_dt[nodes])		
 		self.EXS.append(inf.exs_dt[nodes])
+		
+	def extract_point_var_CN(self, nodes, Kc, Eca, Pthe):
+		"""extract variables from canompy component
+		"""
+		self.Kc.append(Kc[nodes])		
+		self.ECN.append(Eca[nodes])
+		self.PTH.append(Pthe[nodes])
 	
 	def extract_point_var_UZ_swb(self, nodes, swb, *layer):
 		"""extract variables from soil component
@@ -100,20 +112,22 @@ class GlobalTimeVarPts:
 		OUTPUT
 		------
 		
-		"""
+		"""		
 		self.AET.append(swb.aet_dt[nodes])		
 		self.THT.append(swb.tht_dt[nodes])		
 		self.PCL.append(swb.pcl_dt[nodes])
-		self.Kc.append(swb.kc_dt[nodes])
+		#self.Kc.append(swb.kc_dt[nodes])
 		#self.WRSI.append(swb.WRSI[nodes])
 		self.two_layer = 0
 		if self.two_layer == 1:
 			self.THTl.append(swb.thtl_dt[nodes])
+		
 	
 	def extract_point_var_SZ(self, nodes, gw):
 		"""extract variables from groundwater component
 		"""
 		self.WTE.append(gw.wte_dt[nodes])
+		
 			
 	def extract_point_var_SZ_L2(self, nodes, grid):
 		"""extract variables from groundwater component
@@ -126,7 +140,7 @@ class GlobalTimeVarPts:
 		second layer
 		"""
 		self.ETSZ.append(var[nodes])
-		
+				
 	def save_point_var(self, fname, time, area, rarea, depth=1, *dt):
 		"""save variables as csv files for selected points
 		INPUT
@@ -242,24 +256,24 @@ class GlobalTimeVarPts:
 					df = df.reset_index()
 				df.to_csv(fname_out,index = False)
 			
-		if self.ETSZ:			
-			# Groundwater Actual evapotranspiration			
-			df = pd.DataFrame()			
-			df['Date'] = time			
-			data = np.transpose(self.ETSZ)
-						
-			for i in range(len(data)):			
-				field = 'ETSZ_'+str(i)				
-				df[field] = data[i,:]
-			
-			if print_actualetp is True:
-				fname_out = fname+'_ETSZ.csv'			
-				os.remove(fname_out) if os.path.exists(fname_out) else None			
-				if point_aggre is not None:
-					df.index = pd.DatetimeIndex(df['Date'])
-					df = df.resample(point_aggre).sum()
-					df = df.reset_index()
-				df.to_csv(fname_out,index = False)
+			if self.ETSZ:			
+				# Groundwater Actual evapotranspiration			
+				df = pd.DataFrame()			
+				df['Date'] = time			
+				data = np.transpose(self.ETSZ)
+							
+				for i in range(len(data)):			
+					field = 'ETSZ_'+str(i)				
+					df[field] = data[i,:]
+				
+				if print_actualetp is True:
+					fname_out = fname+'_ETSZ.csv'			
+					os.remove(fname_out) if os.path.exists(fname_out) else None			
+					if point_aggre is not None:
+						df.index = pd.DatetimeIndex(df['Date'])
+						df = df.resample(point_aggre).sum()
+						df = df.reset_index()
+					df.to_csv(fname_out,index = False)
 			
 			# Soil moisture			
 			df = pd.DataFrame()			
@@ -281,7 +295,7 @@ class GlobalTimeVarPts:
 					#df = df.reset_index()
 				df.to_csv(fname_out)#, index=False)
 			
-			# Soil moisture			
+			# Soil moisture second layer	
 			if self.two_layer == 1:
 				df = pd.DataFrame()			
 				df['Date'] = time			
@@ -300,7 +314,7 @@ class GlobalTimeVarPts:
 						df = df.reset_index()
 					df.to_csv(fname_out,index = False)
 			
-			# Soil percolation			
+			# Soil percolation, recharcge
 			df = pd.DataFrame()			
 			df['Date'] = time			
 			data = np.transpose(self.PCL)
@@ -332,7 +346,7 @@ class GlobalTimeVarPts:
 			#df.to_csv(fname_out,index = False)
 		
 		if self.OFL:
-			# Channel flow[mm]
+			# Channel flow[mm], discharge
 			df = pd.DataFrame()			
 			df['Date'] = time			
 			data = np.transpose(self.OFL)
@@ -400,7 +414,8 @@ class GlobalTimeVarPts:
 					df = df.resample(point_aggre).sum()
 					df = df.reset_index()
 				df.to_csv(fname_dis, index=False)
-			
+		
+		# water table
 		if self.WTE:			
 			df = pd.DataFrame()			
 			df['Date'] = time			
@@ -418,7 +433,8 @@ class GlobalTimeVarPts:
 					df = df.resample(point_aggre).mean()
 					df = df.reset_index()
 				df.to_csv(fname_dis, index=False)
-			
+		
+		# hydraulic head second layer
 		if self.HEAD:			
 			df = pd.DataFrame()			
 			df['Date'] = time			
@@ -453,6 +469,47 @@ class GlobalTimeVarPts:
 					df.index = pd.DatetimeIndex(df['Date'])
 					df = df.resample(point_aggre).mean()
 					df = df.reset_index()
+				
+				df.to_csv(fname_out, index=False)
+		
+		# Canopy evaporation values
+		if self.ECN:
+			df = pd.DataFrame()
+			df['Date'] = time
+			data = np.transpose(self.ECN)
+			
+			for i in range(len(data)):			
+				field = 'Eca_'+str(i)				
+				df[field] = data[i,:]
+			
+			if print_Eca is True:
+				fname_out = fname+'_Eca.csv'			
+				os.remove(fname_out) if os.path.exists(fname_out) else None			
+				if point_aggre is not None:
+					df.index = pd.DatetimeIndex(df['Date'])
+					df = df.resample(point_aggre).sum()
+					df = df.reset_index()
+				
+				df.to_csv(fname_out, index=False)
+		#print(self.PTH)		
+		# Throufall values
+		if self.PTH:
+			df = pd.DataFrame()
+			df['Date'] = time
+			data = np.transpose(self.PTH)
+			
+			for i in range(len(data)):			
+				field = 'Pth_'+str(i)				
+				df[field] = data[i,:]
+			
+			if print_Pth is True:
+				fname_out = fname+'_Pth.csv'			
+				os.remove(fname_out) if os.path.exists(fname_out) else None			
+				if point_aggre is not None:
+					df.index = pd.DatetimeIndex(df['Date'])
+					df = df.resample(point_aggre).sum()
+					df = df.reset_index()
+				
 				df.to_csv(fname_out, index=False)
 		
 	
@@ -501,7 +558,7 @@ class GlobalTimeVarAvg:
 		else:		
 			self.cth_factor = []
 		
-	def extract_avg_var_pre(self, nodes, pre):
+	def extract_avg_var_pre(self, nodes, pre, pet):
 		"""extract variables from precipitation component
 		"""
 		if len(self.cth_factor):			
@@ -509,8 +566,8 @@ class GlobalTimeVarAvg:
 		else:		
 			area_catch_factor = 1.0
 
-		self.PRE.append(np.sum(area_catch_factor*pre.rain[nodes]))	
-		self.PET.append(np.sum(area_catch_factor*pre.PET[nodes]))
+		self.PRE.append(np.sum(area_catch_factor*pre[nodes]))	
+		self.PET.append(np.sum(area_catch_factor*pet[nodes]))
 		
 	def extract_avg_var_OF(self, nodes, ro):
 		"""extract variables from surface component
@@ -574,7 +631,7 @@ class GlobalTimeVarAvg:
 		"""
 		df = pd.DataFrame()		
 		df['Date'] = time
-		
+		#print(self.PET,self.IUZ)
 		if self.PRE:		
 			df['PET'] = self.PET			
 			df['PRE'] = self.PRE		
@@ -634,8 +691,8 @@ class GlobalGridVar:
 					num=self.grid_shape[0])
 					
 			# temporal accumulation
-			#self.PRE_dt = np.zeros_like(self.lat)
-			#self.PET_dt = np.zeros_like(self.lat)
+			self.PRE_dt = np.zeros_like(self.lat)
+			self.PET_dt = np.zeros_like(self.lat)
 			self.AET_dt = np.zeros_like(self.lat)
 			self.THT_dt = np.zeros_like(self.lat)
 			self.INF_dt = np.zeros_like(self.lat)
@@ -671,20 +728,29 @@ class GlobalGridVar:
 			self.time_grid = []
 			self.nsteps = 0
 			
-	def get_env_state(self, t_date, pre, inf, swb, ro, gw, swb_rip, env_state):
+	def get_env_state(self, date_sim_dt, t_date, pre, pet, inf, swb, ro, gw, swb_rip, env_state):
 		"""Extract grid variables and aggregate at the
 		specifed temporal scale
+		INPUT:
+		------
+		date_sim_dt:	dates (datetime array)
+		pre:	precipitaiton (numpy array)
+		pet:	potential evapotranspiration (numpy array)
+		inf:	infiltration parameters (object)
+		swb:	
+		OUTPUT:
+		-------
 		"""
 		if self.save_results == 1:
 			# check if the last date is read
-			if t_date == len(pre.date_sim_dt)-1:
-				self.idate = pre.date_sim_dt[t_date]
-				date = pre.date_sim_dt[t_date]
+			if t_date == len(date_sim_dt)-1:
+				self.idate = date_sim_dt[t_date]
+				date = date_sim_dt[t_date]
 			else:
-				date = pre.date_sim_dt[t_date+1]
+				date = date_sim_dt[t_date+1]
 			#print(date, self.idate, self.nsteps)
-			self.PRE_dt += pre.rain.reshape(self.grid_shape)
-			self.PET_dt += pre.PET.reshape(self.grid_shape)
+			self.PRE_dt += pre.reshape(self.grid_shape)
+			self.PET_dt += pet.reshape(self.grid_shape)
 			self.AET_dt += swb.aet_dt.reshape(self.grid_shape)
 			self.THT_dt += swb.tht_dt.reshape(self.grid_shape)
 			self.INF_dt += inf.inf_dt.reshape(self.grid_shape)
@@ -780,24 +846,26 @@ class GlobalGridVar:
 			#grp1 = dataset.createGroup('model_run1')
 			#grp2 = dataset.createGroup('model_run2')
 			
-			# Create the actual 4-d variable			
-			#npre = dataset.createVariable('pre', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			#npet = dataset.createVariable('pet', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			naet = dataset.createVariable('aet', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			ninf = dataset.createVariable('inf', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			ntls = dataset.createVariable('tls', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			nfch = dataset.createVariable('fch', np.float32, ('time', 'lat', 'lon'), zlib=True)				
-			ndch = dataset.createVariable('dch', np.float32, ('time', 'lat', 'lon'), zlib=True)
+			# Create the actual 4-d variable
+			if save_all is True:
+				npre = dataset.createVariable('pre', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				npet = dataset.createVariable('pet', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				naet = dataset.createVariable('aet', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				ninf = dataset.createVariable('inf', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				ntls = dataset.createVariable('tls', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				nfch = dataset.createVariable('fch', np.float32, ('time', 'lat', 'lon'), zlib=True)				
+				ndch = dataset.createVariable('dch', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				
+				nwte = dataset.createVariable('wte', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				
+				nqfl = dataset.createVariable('qfl', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				ndis = dataset.createVariable('run', np.float32, ('time', 'lat', 'lon'), zlib=True)
+				ngdh = dataset.createVariable('gdh', np.float32, ('time', 'lat', 'lon'), zlib=True)
+								
+				ntht = dataset.createVariable('tht', np.float32, ('time', 'lat', 'lon'), zlib=True)
 			
-			nwte = dataset.createVariable('wte', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			
-			nqfl = dataset.createVariable('qfl', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			ndis = dataset.createVariable('run', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			ngdh = dataset.createVariable('gdh', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			
-			
-			ntht = dataset.createVariable('tht', np.float32, ('time', 'lat', 'lon'), zlib=True)
-			
+			else:
+				ndis = dataset.createVariable('run', np.float32, ('time', 'lat', 'lon'), zlib=True)
 			
 			#nwrsi = dataset.createVariable('wrsi', np.float32, ('time', 'lat','lon'), zlib=True, shuffle=True)
 			
@@ -822,18 +890,21 @@ class GlobalGridVar:
 			
 			for j, idate in enumerate(self.time_grid):		
 				time[j] = date2num(idate, units=time.units, calendar=time.calendar)
-				#npre[j,:,:] = (self.PRE[j][:])#.reshape(self.grid_shape)
-				#npet[j,:,:] = (self.PET[j][:])#.reshape(self.grid_shape)
-				naet[j,:,:] = (self.AET[j][:])#.reshape(self.grid_shape)
-				ntht[j,:,:] = (self.THT[j][:])#.reshape(self.grid_shape)
-				ninf[j,:,:] = (self.INF[j][:])#.reshape(self.grid_shape)
-				ndis[j,:,:] = (self.OFL[j][:])#.reshape(self.grid_shape)
-				nqfl[j,:,:] = (self.QFL[j][:])#.reshape(self.grid_shape)
-				ntls[j,:,:] = (self.TLS[j][:])#.reshape(self.grid_shape)
-				nfch[j,:,:] = (self.FRH[j][:])#.reshape(self.grid_shape)
-				ndch[j,:,:] = (self.DRH[j][:])#.reshape(self.grid_shape)
-				ngdh[j,:,:] = (self.GDH[j][:])#.reshape(self.grid_shape)
-				nwte[j,:,:] = (self.WTE[j][:])#.reshape(self.grid_shape)
+				if save_all is True:
+					npre[j,:,:] = (self.PRE[j][:])#.reshape(self.grid_shape)
+					npet[j,:,:] = (self.PET[j][:])#.reshape(self.grid_shape)
+					naet[j,:,:] = (self.AET[j][:])#.reshape(self.grid_shape)
+					ntht[j,:,:] = (self.THT[j][:])#.reshape(self.grid_shape)
+					ninf[j,:,:] = (self.INF[j][:])#.reshape(self.grid_shape)
+					ndis[j,:,:] = (self.OFL[j][:])#.reshape(self.grid_shape)
+					nqfl[j,:,:] = (self.QFL[j][:])#.reshape(self.grid_shape)
+					ntls[j,:,:] = (self.TLS[j][:])#.reshape(self.grid_shape)
+					nfch[j,:,:] = (self.FRH[j][:])#.reshape(self.grid_shape)
+					ndch[j,:,:] = (self.DRH[j][:])#.reshape(self.grid_shape)
+					ngdh[j,:,:] = (self.GDH[j][:])#.reshape(self.grid_shape)
+					nwte[j,:,:] = (self.WTE[j][:])#.reshape(self.grid_shape)
+				else:
+					ndis[j,:,:] = (self.OFL[j][:])#.reshape(self.grid_shape)
 			#	nwrsi[j,:,:] = (self.AET[j][:]/self.PET[j][:]).reshape(self.grid_shape)
 				
 			dataset.close()

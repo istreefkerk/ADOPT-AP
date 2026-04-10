@@ -15,7 +15,7 @@ ABC_RIVER = 0.99 # River abstraction parameter
 class inputfile(object):
 	"""
 	"""
-	def __init__(self, filename_inputs, first_read=1):
+	def __init__(self, filename_inputs, config, first_read=1):
 		"""Model paramter settings and input file namens and location
 		"""
 		self.first_read = first_read
@@ -34,69 +34,55 @@ class inputfile(object):
 		self.dtUZ = int(fsimpar.DWAPM_SET[8])
 		self.dtSZ = int(fsimpar.DWAPM_SET[10])
 		
-		aux_dt_pre = fsimpar.DWAPM_SET[13].split()
-		aux_dt_pet = fsimpar.DWAPM_SET[15].split()
-		aux_dt_ABC = fsimpar.DWAPM_SET[17].split()
-		
-		aux_dt_Kc = fsimpar.DWAPM_SET[26].split()
-		aux_dt_SAVI = fsimpar.DWAPM_SET[28].split()
-		
+		netcdf_opt = fsimpar.DWAPM_SET[13].split()
+		time_step = fsimpar.DWAPM_SET[15].split()
+		reproj_opt = fsimpar.DWAPM_SET[17].split()
+		interp_opt = fsimpar.DWAPM_SET[19].split()
+				
 		# Datasets format
-		self.netcf_pre = int(aux_dt_pre[0])
-		self.netcf_ETo = int(aux_dt_pet[0])
-		self.netcf_ABC = int(aux_dt_ABC[0])
+		self.netcf_pre = int(netcdf_opt[0])
+		self.netcf_ETo = int(netcdf_opt[1])
+		self.netcf_ABC = int(netcdf_opt[2])
+		self.netcf_kc =  int(netcdf_opt[3])
+		self.netcf_Flux =int(netcdf_opt[4])
+		self.netcf_savi =int(netcdf_opt[5])
+		self.netcf_savi_min =int(netcdf_opt[6])
+		self.netcf_savi_max =int(netcdf_opt[7])
 		
-		self.netcf_kc = int(aux_dt_Kc[0])
-		self.netcf_savi = int(aux_dt_SAVI[0])
+		# Dataset time step
+		self.dt_pre = int(time_step[0])
+		self.dt_ETo = int(time_step[1])
+		self.dt_ABC = int(time_step[2])
+		self.dt_kc =  int(time_step[3])
+		self.dt_Flux =int(time_step[4])
+		self.dt_savi =int(time_step[5])
+		self.dt_savi_min = int(time_step[6])
+		self.dt_savi_max = int(time_step[7])
 		
-		# default time step of data sets
-		self.dt_pre = 60
-		self.dt_pet = 60
-		self.dt_ABC = 60
+		# Datasets reprojection
+		self.reproject_pre = int(reproj_opt[0])
+		self.reproject_ETo = int(reproj_opt[1])
+		self.reproject_ABC = int(reproj_opt[2])
+		self.reproject_kc =  int(reproj_opt[3])
+		self.reproject_Flux =int(reproj_opt[4])
+		self.reproject_savi =int(reproj_opt[5])
+		self.reproject_savi_min = int(reproj_opt[6])
+		self.reproject_savi_max = int(reproj_opt[7])
 		
-		# read precipitation dataset temporal frequency
-		if len(aux_dt_pre) > 1:
-			self.dt_pre = int(aux_dt_pre[1])
-			if len(aux_dt_pre) > 2:
-				# interpolation required
-				self.interpolate_pre = int(aux_dt_pre[2])
-			else:
-				self.interpolate_pre = 0
-			
-			if len(aux_dt_pre) > 3:
-				# interpolation required
-				self.reproject_pre = int(aux_dt_pre[3])
-			else:
-				self.reproject_pre = 0
-				
-		# read potential Ep dataset temporal frequency		
-		if len(aux_dt_pet) > 1:
-			self.dt_pet = int(aux_dt_pet[1])
-			if len(aux_dt_pet) > 2:
-				# interpolation required
-				self.interpolate_pet = int(aux_dt_pet[2])
-			else:
-				self.interpolate_pet = 0
-				
-			if len(aux_dt_pet) > 3:
-				# interpolation required
-				self.reproject_pet = int(aux_dt_pet[3])
-			else:
-				self.reproject_pet = 0
-			
-		# read ABM dataset temporal frequency		
-		if len(aux_dt_ABC) > 1:
-			self.dt_ABC = int(aux_dt_ABC[1])
-			if len(aux_dt_ABC) > 2:
-				# interpolation required
-				self.interpolate_ABC = int(aux_dt_ABC[2])
-			else:
-				self.interpolate_ABC = 0
-			
+		# Datasets interpolate
+		self.interpolate_pre = int(interp_opt[0])
+		self.interpolate_ETo = int(interp_opt[1])
+		self.interpolate_ABC = int(interp_opt[2])
+		self.interpolate_kc =  int(interp_opt[3])
+		self.interpolate_Flux =int(interp_opt[4])	
+		self.interpolate_savi =int(interp_opt[5])
+		self.interpolate_savi_min = int(interp_opt[6])
+		self.interpolate_savi_max = int(interp_opt[7])
+					
 		# read separeted files for all inputs
-		self.nfiles = int(fsimpar.DWAPM_SET[31])
+		#self.nfiles = int(fsimpar.DWAPM_SET[31])
 						
-		self.inf_method = int(fsimpar.DWAPM_SET[20])
+		self.inf_method = int(fsimpar.DWAPM_SET[22])
 		
 		if self.inf_method > 3:
 			self.inf_method = 0
@@ -109,37 +95,34 @@ class inputfile(object):
 		else:
 			self.gw_func = 0
 		
-		#self.run_OF_lr = int(fsimpar.DWAPM_SET[22])
-				
 		# save netcdf files of model results
 		self.save_results = int(fsimpar.DWAPM_SET[33])
 		
+		# activate lakes
+		self.lakes = int(fsimpar.DWAPM_SET[43])
+		
 		# temporal agregation of model outputs
 		self.dt_results = fsimpar.DWAPM_SET[35]
-		#print(self.dt_results)
 		# save discharge units
 		# 0: volumetric
 		# 1: depth
 		self.save_dis_depth = int(fsimpar.DWAPM_SET[39])
-		
-		#self.print_t = int(fsimpar.DWAPM_SET[43])
-		#self.print_maps_tn = int(fsimpar.DWAPM_SET[39])		
-		
+				
 		# Unsaturated zone factors =========================================
 		self.kdt_r = float(fsimpar.DWAPM_SET[46])
-		self.kDroot = float(fsimpar.DWAPM_SET[48])	# k for soil depth
+		self.kDroot = float(config['parameters']['rooting_depth'])	# k for soil depth fsimpar.DWAPM_SET[48]
 		self.kAWC = 1.#float(fsimpar.DWAPM_SET[50])	# k for AWC
-		self.kKsat = float(fsimpar.DWAPM_SET[52])		# k for soil infiltration
-		self.k_sigma_ks = float(fsimpar.DWAPM_SET[54])
+		self.kKsat = float(config['parameters']['sat_hyd_con'])		# k for soil infiltration fsimpar.DWAPM_SET[52]
+		self.k_sigma_ks = float(fsimpar.DWAPM_SET[54]) 
 		
 		# River routing factors ============================================
-		self.kKch = float(fsimpar.DWAPM_SET[56])	# infiltration on channel
-		self.kTch = float(fsimpar.DWAPM_SET[58])	# Runoff decay flow factor
+		self.kKch = float(config['parameters']['ch_sat_hyd_con'])	# infiltration on channel fsimpar.DWAPM_SET[56]
+		self.kTch = float(config['parameters']['recession_time'])	# Runoff decay flow factor fsimpar.DWAPM_SET[58]
 		self.kpe = float(fsimpar.DWAPM_SET[60])
 		
 		# Saturated zone factors ===========================================
-		self.kKsat_gw = float(fsimpar.DWAPM_SET[62])	# Ksat factor
-		self.kSy_gw = float(fsimpar.DWAPM_SET[64])		# Sy factor
+		self.kKsat_gw = float(config['parameters']['aq_sat_hyd_con'])	# Ksat factor fsimpar.DWAPM_SET[62]
+		self.kSy_gw = float(config['parameters']['specific_yield'])		# Sy factor fsimpar.DWAPM_SET[64]
 		if len(fsimpar.DWAPM_SET) == 66:
 			self.kFlux = float(fsimpar.DWAPM_SET[66])
 		else:
@@ -171,11 +154,13 @@ class inputfile(object):
 		#self.kpkKch = 1.0							# initial kKch increase for TL
 		self.T_str_channel = 0.0					# duration of initial kKch increase for TL
 		self.kKch = self.kKch*self.unit_sim_k
-		self.river_banks = 30.0 					# Riparian zone with [m]
+		self.river_banks = 100.0 					# Riparian zone with [m]
 		self.run_FAc = 1
 		self.dt_OF = 1
-		self.Sim_period = self.end_date - self.ini_date
-
+		self.ndays = (self.end_date - self.ini_date).days
+		#print(self.ndays)
+		
+		#==================================================================
 		# READING MODEL PARAMETER FILES ===================================
 		# INTERCEPTION COMPONENT
 		self.fname_interception = f.drylandmodel[91]
@@ -194,7 +179,7 @@ class inputfile(object):
 			self.fname_lai = fcp.INTERCEPTION[13]
 			
 			#Riparian component
-			#self.fname_avrip = fcp.INTERCEPTION[15]
+			self.fname_avrip = fcp.INTERCEPTION[15]
 			self.fname_savi_rip = fcp.INTERCEPTION[15]
 			#self.fname_kc = fcp.INTERCEPTION[3]
 			#self.fname_avc = fcp.INTERCEPTION[5]
@@ -205,6 +190,11 @@ class inputfile(object):
 			self.fname_lairip = fcp.INTERCEPTION[25]
 			
 			self.fname_tap_depth = fcp.INTERCEPTION[27]
+			self.fname_final_depth = fcp.INTERCEPTION[29]
+			
+			#new parameter
+			self.fname_fcw_canopy = fcp.INTERCEPTION[31]
+			self.fname_Sc0_canopy = fcp.INTERCEPTION[33]
 			
 		else:
 			#Soil component
@@ -230,6 +220,10 @@ class inputfile(object):
 			self.fname_lairip = 'None'
 			
 			self.fname_tap_depth = 'None'
+			self.fname_final_depth = 'None'
+			
+			self.fname_fcw_canopy = 'None'
+			self.fname_Sc0_canopy = 'None'
 				
 		# SURFACE COMPONENT ======================================== SZ = 
 		self.fname_DEM = f.drylandmodel[4]
@@ -259,12 +253,14 @@ class inputfile(object):
 		else:
 			self.fname_bc = 'None'
 		
+		self.fname_TSOF = 'None'
+		self.filename_OF_points = 'None'
+		
 		if os.path.exists(self.fname_bc):
-		
 			fbc = pd.read_csv(self.fname_bc)
-			self.filename_OF_points = fbc.OFBC[1]
-			
-		
+			self.fname_TSOF = fbc.OFBC[1]
+			self.filename_OF_points = fbc.OFBC[3]
+				
 		# RIPARIAN COMPONENT ======================================== rz =
 		if len(f) == 94:
 			self.fname_riparian_zone = f.drylandmodel[93]
@@ -353,13 +349,13 @@ class inputfile(object):
 		self.fname_TSMeteo = f.drylandmodel[68]	# Evapotranspiration file
 		self.fname_TSABC = f.drylandmodel[70]	# Abstraction file: AOF, AUZ, ASZ
 		#self.fname_savi = f.drylandmodel[70]
-		self.fname_kc = f.drylandmodel[72]
+		#self.fname_kc = f.drylandmodel[72]
 		# Vegetation parameters ==========================================
 		self.fname_TSKc = f.drylandmodel[21]	# Vegetation parameter Kc
 		self.fname_Rip_width = f.drylandmodel[23]#Available
 		self.fname_Rip_init = f.drylandmodel[25] #Available
 		# Output files maps ===================================== Print = 
-		self.DirOutput = f.drylandmodel[81]		# Output directory
+		self.DirOutput = config['general']['report_folder']#f.drylandmodel[81]		# Output directory
 		#reading output points
 		self.fname_DISpoints = f.drylandmodel[75]	# Discharge points
 		self.fname_SMDpoints = f.drylandmodel[77]	# Soil moisture points
@@ -878,7 +874,7 @@ class model_environment_status(object):
 		# read crop vegetation factor: default 1
 		if os.path.exists(inputfile.fname_interception):
 			if os.path.exists(inputfile.fname_av):
-				self.av = rasterio.open(fname_av).read(1).flatten()
+				self.av = np.flip(rasterio.open(inputfile.fname_av).read(1), 0).flatten()
 			else:
 				print('Fraction of vegetation cover..not provided as raster. Global default 1')
 				self.av = 0.4
@@ -912,21 +908,54 @@ class model_environment_status(object):
 			print('Fraction of vegetation cover..not provided as raster. Global default 1')
 			self.savi_max = 1.0
 		
-		#------Modification for Dyna-Veg------------
+		#------Modification for Dyna-Veg---------------------------------------------------
+		# bioma-dependent coefficient
+		if os.path.exists(inputfile.fname_fcw_canopy):
+			self.fcw_cn = rasterio.open(inputfile.fname_fcw_canopy).read(1).flatten()
+		else:
+			print('Biome-dependent coefficient, not provided. Global 1 []')
+			self.fcw_cn = np.ones(len(rg.at_node['Soil_depth']))
+		
+		# inital water content of the canopy storage
+		if os.path.exists(inputfile.fname_Sc0_canopy):
+			self.Sc0_cn = rasterio.open(inputfile.fname_Sc0_canopy).read(1).flatten()
+		else:
+			print('Initial canopy storage, not provided. Global 0 []')
+			self.Sc0_cn = np.zeros(len(rg.at_node['Soil_depth']))
+		
+		# inital water content of the canopy storage, riparian zone
+		if os.path.exists(inputfile.fname_Sc0_canopy):
+			self.Sc0_cnrp = rasterio.open(inputfile.fname_Sc0_canopy).read(1).flatten()
+		else:
+			print('Initial riparian canopy storage, not provided. Global 0 []')
+			self.Sc0_cnrp = np.zeros(len(rg.at_node['Soil_depth']))
+		
 		# Tap water threshold for evaporation uptake
 		# tap needs to be equal or higher than the soil depth
 		if os.path.exists(inputfile.fname_tap_depth):
 			self.tap_depth = rasterio.open(inputfile.fname_tap_depth).read(1).flatten()
 		else:
-			print('Tap water level, not provided. Global default rooting depth [mm]')
-			self.tap_depth = np.array(rg.at_node['Soil_depth'])
+			print('Tap water level, not provided. Global 0 [mm]')
+			self.tap_depth = np.zeros(len(rg.at_node['Soil_depth']))
 		
 		self.ztap = z - self.tap_depth*0.001
 		
-		self.tap_depth = (self.tap_depth - self.Droot)*0.001
+		# Final plant water uptake threshold for evaporation uptake
+		if os.path.exists(inputfile.fname_final_depth):
+			self.final_depth = rasterio.open(inputfile.fname_final_depth).read(1).flatten()
+		else:
+			print('Final root water uptake level, not provided. Default is rooting depth [mm]')
+			self.final_depth = np.array(rg.at_node['Soil_depth'])
+		
+		# change units: mm -> m
+		self.zfinal = z - self.final_depth*0.001
+		#print(self.final_depth)
+		# 
+		self.final_depth = -(self.tap_depth - self.final_depth)*0.001
 		#print(self.ztap)
-		self.tap_depth[self.tap_depth <= 0] = self.Droot[self.tap_depth <= 0]*0.001
+		self.final_depth[self.final_depth <= 0] = self.Droot[self.final_depth <= 0]*0.001
 		#print(self.tap_depth)
+		#print(self.final_depth)
 		# -------- modification for lakes ------------
 		# read maximum surface water elevation of lakes
 		if os.path.exists(inputfile.fname_lakes_elevation):
@@ -939,8 +968,8 @@ class model_environment_status(object):
 		# Interception component for the riparian area
 		# read crop vegetation factor: default 1
 		if os.path.exists(inputfile.fname_interception):
-			if os.path.exists(inputfile.fname_av):
-				self.avrip = rasterio.open(fname_avrip).read(1).flatten()
+			if os.path.exists(inputfile.fname_avrip):
+				self.avrip = np.flip(rasterio.open(inputfile.fname_avrip).read(1), 0).flatten()
 			else:
 				print('Fraction of vegetation cover..not provided as raster. Global default 1')
 				self.avrip = 0.4
@@ -1040,6 +1069,7 @@ class model_environment_status(object):
 		
 		self.area_river_factor = np.zeros_like(z)
 		self.area_river_factor[self.river_ids_nodes] = 1 / np.sum(rg.at_node['cth_area_k'][self.basin_nodes])
+		self.area_cth = 1/np.sum(rg.at_node['cth_area_k'][self.basin_nodes])
 		
 		# Calculate area of river banks, riparian zone
 		if rg.dx > inputfile.river_banks:		
@@ -1047,6 +1077,10 @@ class model_environment_status(object):
 			self.area_cells_banks[self.riv_nodes] = np.array(
 				rg.at_node['river_length'][self.riv_nodes]
 				* (riv_width[self.riv_nodes]+2*inputfile.river_banks))
+				
+			self.area_cells_banks = np.where(self.area_cells_banks > np.power(rg.dx, 2),
+					np.power(rg.dx, 2), self.area_cells_banks)
+			
 		else:
 			# if river banks are bigger than grid size
 			# the riparian area is equal to the grid size
@@ -1064,7 +1098,7 @@ class model_environment_status(object):
 		self.inv_riv_factor[self.area_cells_banks > 0] =(
 			self.area_cells[self.area_cells_banks > 0]/
 			self.area_cells_banks[self.area_cells_banks > 0])
-		
+		#print(self.riv_factor)
 		# hillslope area cell factor [-]
 		#self.hill_factor = aux_mask*self.area_cells_hills/self.area_cells
 		
@@ -1239,15 +1273,20 @@ class model_environment_status(object):
 
 # COMPONENT TO BE DEVELOPED: DO NOT MODIFY THE CODE BELOW
 
-class soil_envinromental_states(object):
+class soil_parameters(object):
 	"""Setting model input varables and environmental states
 	"""
-	def __init__(self, grid, inputfile):
-		"""Create variables to store model states and input data sets.
-		Read all input datasst and variables for all components
+	def __init__(self, grid_size, inputfile):
+		"""Read soil layer parameters
+		INPUT:
+		------
+		grid_size:	size of the model domain
+		inputfile:	list of file manes for soil parameters
+		
+		OUTPUT:
+		-------
 		"""
-		#grid_size = 
-				
+		print("Reading soil parameter for soil layer")		
 		# Reading Soil saturated hydraulic conductivity
 		if not os.path.exists(inputfile.fname_Ksat_soil):
 			self.Ksat_uz = np.ones(grid_size)
@@ -1258,20 +1297,6 @@ class soil_envinromental_states(object):
 		# Change units and applying scale factor kKs
 		self.Ksat_uz = (self.Ksat_uz*inputfile.unit_sim_k*inputfile.kKsat)
 				
-		# Reading soil depth map: raster file [mm]
-		if not os.path.exists(inputfile.fname_SoilDepth):
-			self.depth_uz = np.ones(grid_size)
-			self.depth_uz *= 1000.0	# default value 1000 mm
-			print('Rooting depth................. not provided as raster. Global default applied of 1000mm')
-		else:
-			self.depth_uz = rasterio.open(inputfile.fname_SoilDepth).read(1).flatten()
-			read_esri_ascii(inputfile.fname_SoilDepth,
-				name='Soil_depth', grid=rg)[1]
-		
-		# Applying scale factor kDroot
-		self.depth_uz *= inputfile.kDroot
-		self.Droot = np.array(self.depth_uz)
-		
 		# Reading residual water content
 		if not os.path.exists(inputfile.fname_theta_r):
 			self.theta_res = np.zeros(grid_size)
@@ -1290,11 +1315,11 @@ class soil_envinromental_states(object):
 				
 		# Read Saturated water content (porosity)
 		if not os.path.exists(inputfile.fname_n):
-			self.theta_ne = np.ones(grid_size)
-			self.theta_ne[:] = 0.40
+			self.theta_sat = np.ones(grid_size)
+			self.theta_sat[:] = 0.40
 			print('Porosity...................... not provided as raster. Global default applied of 0.4')
 		else:
-			self.theta_ne = rasterio.open(inputfile.fname_n).read(1).flatten()
+			self.theta_sat = rasterio.open(inputfile.fname_n).read(1).flatten()
 			
 		# Reading available water content: raster file		
 		if not os.path.exists(inputfile.fname_AWC):
@@ -1303,10 +1328,7 @@ class soil_envinromental_states(object):
 			print('Available Water Content....... not provided as raster. Global default applied of 0.10')
 		else:
 			self.theta_AWC = rasterio.open(inputfile.fname_AWC).read(1).flatten()
-			
-		# Applying scale factor kAWC
-		self.theta_AWC = self.theta_AWC*inputfile.kAWC
-					
+							
 		# Exponent for soil moisture - matrix potential relation
 		# Rawls (1982), and Clapp and Hornberger (1978)
 		if not os.path.exists(inputfile.fname_b_SOIL):
@@ -1318,14 +1340,31 @@ class soil_envinromental_states(object):
 			
 		# air-entry/saturated capillary potential, [mm]
 		if not os.path.exists(inputfile.fname_PSI):
-			self.psi = np.ones(grid_size, dtype=float)
-			self.psi[:] = 153.0
+			self.psi_a = np.ones(grid_size, dtype=float)
+			self.psi_a[:] = 153.0
 			print('Suction head.................. not provided as raster. Global default applied of 153 mm')
 		else:
-			self.psi = rasterio.open(inputfile.fname_PSI).read(1).flatten()
+			self.psi_a = rasterio.open(inputfile.fname_PSI).read(1).flatten()
 			
-		# Saturated suction for the Campbell model
-		self.psi = self.psi*(self.lambdas*2+2.5)/(self.lambdas+2.5)
+		# Sorptivity for the Campbell model
+		self.psi = self.psi_a*(self.lambdas*2+2.5)/(self.lambdas+2.5)
+		
+		# Exponent c for Rawls (1982), and Clapp and Hornberger (1978)
+		# c_SOIL = np.array(self.lambdas)*2+2.5
+		# Campbell (1974)
+		self.c_SOIL = 2/np.array(self.lambdas) + 3
+		
+		# Reading soil depth map: raster file [mm]
+		if not os.path.exists(inputfile.fname_SoilDepth):
+			self.depth_uz = np.ones(grid_size)
+			self.depth_uz *= 1000.0	# default value 1000 mm
+			print('Rooting depth................. not provided as raster. Global default applied of 1000mm')
+		else:
+			self.depth_uz = rasterio.open(inputfile.fname_SoilDepth).read(1).flatten()
+			
+		# Applying scale factor kDroot
+		self.depth_uz *= inputfile.kDroot
+		self.Droot = np.array(self.depth_uz)
 
 def extract_id_from_coords(grid, filename):
 	""" extract nodes from a csv file
